@@ -8,13 +8,11 @@ pg.init()
 window = pg.display.set_mode((1100, 740))
 
 class GameObject:
-    def __init__(self, sprite_path, x, y, width, height, static):
+    def __init__(self, sprite_path, x, y, static):
         self.sprite_path = sprite_path
-        self.sprite = pg.image.load(f'img/assets/{self.sprite_path}.png').convert_alpha()       
+        self.sprite = pg.transform.scale(pg.image.load(f'images/assets/{self.sprite_path}.png').convert_alpha(), (100, 100))   
         self.x = x
         self.y = y
-        self.width = width
-        self.height = height
         self.sprite_rotation = 0
         self.sprite_scale = 100
         self.static = static
@@ -23,15 +21,30 @@ class GameObject:
         self.transform_scale = False
 
     def move(self, x, y):
-        self.x = x
-        self.y = y
+        self.x = x - self.sprite_scale / 2
+        self.y = y - self.sprite_scale / 2
 
     def rotate(self, delta):
-        pass
+        self.sprite_rotation = delta
+        sprite = pg.image.load(f'images/assets/{self.sprite_path}.png').convert_alpha()
+        sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale))
+        self.sprite = pg.transform.rotate(sprite, delta)
         
     def scale(self, delta):
-        pass
+        if delta > 0:
+            self.sprite_scale = delta
+            sprite = pg.image.load(f'images/assets/{self.sprite_path}.png').convert_alpha()
+            sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale))
+            self.sprite = pg.transform.rotate(sprite, self.sprite_rotation)
 
+    def collidepoint(self, position):
+        rect = pg.Rect(self.x, self.y, self.sprite_scale, self.sprite_scale)
+        if rect.collidepoint(position):
+            return True
+        return False
+
+    def display(self, window, scroll_x, scroll_y):
+        window.blit(self.sprite, ((self.x - scroll_x), (self.y - scroll_y)))
 
 class Editor:
     def __init__(self, width, height, window):
@@ -66,7 +79,12 @@ class Editor:
         self.current_tile = 0
         self.active_asset = None
         self.current_game_object = None 
-        self.game_objects = []       
+        self.game_objects = []
+
+        # Transform
+        self.move_img = pg.transform.scale(pg.image.load('images/move.png'), (50, 50))
+        self.rotate_img = pg.transform.scale(pg.image.load('images/rotate.png'), (50, 50))
+        self.scale_img = pg.transform.scale(pg.image.load('images/scale.png'), (50, 50))       
 
     def import_assets(self):
         tile_list = []
@@ -120,7 +138,6 @@ class Editor:
         
         return world_data
         
-
     def draw_grid(self):
         for c in range(self.columns + 1):
             pg.draw.line(self.window, "white", (c * self.tile_size - self.scroll_x, 0), (c * self.tile_size - self.scroll_x, self.height))
@@ -219,36 +236,55 @@ class Editor:
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         if self.active_asset == None:  
-                            if self.current_game_object != None:  
-                                if self.move_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
-                                    self.start_moving_object()                                    
-
-                                elif self.rotate_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
-                                    self.start_rotating_object()                                    
-
-                                elif self.scale_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
-                                    self.start_scaling_object()                                   
-
-                            self.select_gameobject()
-
-                        else:      
-                            self.create_new_gameobject(event)
-
+                            self.drag(event)                            
+                                                     
                 if event.type == pg.MOUSEMOTION:
                     if self.active_asset != None:
                         if self.active_asset.transform_move:
                             self.active_asset.move(event.pos[0] + self.scroll_x, event.pos[1] + self.scroll_y)  
 
                         if self.active_asset.transform_rotate:
-                            self.active_asset.rotate(event.pos[0] - self.active_asset.x)
+                            self.active_asset.rotate(event.pos[0] + self.scroll_x - self.active_asset.x)
 
                         if self.active_asset.transform_scale:
-                            self.active_asset.scale(event.pos[0] - self.active_asset.x)   
+                            self.active_asset.scale(event.pos[0] + self.scroll_x - self.active_asset.x)  
+
+                if event.type == pg.MOUSEBUTTONUP:
+                    if event.button == 1:
+                        if self.active_asset != None:
+                            self.drop()                            
+
+    def drag(self, event):
+        if self.current_game_object != None:  
+            if self.move_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
+                self.start_moving_object()                                    
+
+            elif self.rotate_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
+                self.start_rotating_object()                                    
+
+            elif self.scale_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
+                self.start_scaling_object()
+
+        else:  
+            self.select_gameobject()    
+            # Or                               
+            self.create_new_gameobject(event) 
+
+    def drop(self):  
+
+        if pg.mouse.get_pos()[0] < self.width - self.right_margin:                                
+            self.active_asset.transform_move = False
+            self.active_asset.transform_rotate = False
+            self.active_asset.transform_scale = False                                
+            self.current_game_object = self.active_asset
+            self.current_game_object.static = True
+            self.game_objects.append(self.current_game_object)
+            self.active_asset = None                      
 
     def create_new_gameobject(self, event):
         for num, asset in enumerate(self.asset_button_list):
             if asset.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):                                   
-                self.active_asset = GameObject(num, event.pos[0] - self.scroll_x, event.pos[1] - self.scroll_y, self.tile_size, self.tile_size, False) 
+                self.active_asset = GameObject(num, event.pos[0] - self.scroll_x, event.pos[1] - self.scroll_y, False) 
                 self.active_asset.transform_move = True
 
     def start_moving_object(self):
@@ -279,7 +315,21 @@ class Editor:
         for game_object in self.game_objects:
             if game_object.static == True:
                 if game_object.collidepoint(pg.mouse.get_pos()):                           
-                    self.current_game_object = game_object                                       
+                    self.current_game_object = game_object
+
+    def display_game_objects(self):
+        for game_object in self.game_objects:
+            game_object.display(self.window, self.scroll_x, self.scroll_y) 
+
+    def display_transform(self):
+        if self.current_game_object != None:
+            self.move_button = Button(image=self.move_img, pos=(self.current_game_object.x + 75 - self.scroll_x, self.current_game_object.y -25 - self.scroll_y),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
+            self.rotate_button = Button(image=self.rotate_img, pos=(self.current_game_object.x + 150 - self.scroll_x, self.current_game_object.y - 25 - self.scroll_y),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
+            self.scale_button = Button(image=self.scale_img, pos=(self.current_game_object.x + 225 - self.scroll_x, self.current_game_object.y - 25 - self.scroll_y),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
+
+            self.move_button.update(self.window)
+            self.rotate_button.update(self.window)
+            self.scale_button.update(self.window)  
 
     def run(self):
         pg.display.set_caption("Super Mario Cart")
@@ -288,11 +338,20 @@ class Editor:
             # Graphics
             self.clock.tick(self.tick_rate)
             self.window.fill("black")
+
+            # Display World
             self.draw_grid() 
             self.draw_world()
+            self.display_game_objects()           
+
+            # Display Panel
             self.draw_panel()          
             self.update_scroll()
             self.update_tile()
+            self.display_transform()
+
+            if self.active_asset != None:
+                self.active_asset.display(self.window, self.scroll_x, self.scroll_y)
 
             # User Input
             self.receive_input()           
