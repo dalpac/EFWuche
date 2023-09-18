@@ -64,7 +64,9 @@ class Editor:
         self.world_data = self.get_world_data()
 
         self.current_tile = 0
-        self.active_asset = None        
+        self.active_asset = None
+        self.current_game_object = None 
+        self.game_objects = []       
 
     def import_assets(self):
         tile_list = []
