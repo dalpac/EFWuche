@@ -323,9 +323,9 @@ class Editor:
 
     def display_transform(self):
         if self.current_game_object != None:
-            self.move_button = Button(image=self.move_img, pos=(self.current_game_object.x + 75 - self.scroll_x, self.current_game_object.y -25 - self.scroll_y),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
-            self.rotate_button = Button(image=self.rotate_img, pos=(self.current_game_object.x + 150 - self.scroll_x, self.current_game_object.y - 25 - self.scroll_y),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
-            self.scale_button = Button(image=self.scale_img, pos=(self.current_game_object.x + 225 - self.scroll_x, self.current_game_object.y - 25 - self.scroll_y),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
+            self.move_button = Button(image=self.move_img, pos=(self.current_game_object.x - self.scroll_x + (self.current_game_object.sprite_scale / 2), self.current_game_object.y + (self.current_game_object.sprite_scale / 2) - self.scroll_y- 50),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
+            self.rotate_button = Button(image=self.rotate_img, pos=(self.current_game_object.x + 75 - self.scroll_x + (self.current_game_object.sprite_scale / 2), self.current_game_object.y + (self.current_game_object.sprite_scale / 2) - self.scroll_y - 50),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
+            self.scale_button = Button(image=self.scale_img, pos=(self.current_game_object.x + 150 - self.scroll_x + (self.current_game_object.sprite_scale / 2), self.current_game_object.y + (self.current_game_object.sprite_scale / 2) - self.scroll_y - 50),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
 
             self.move_button.update(self.window)
             self.rotate_button.update(self.window)
