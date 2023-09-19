@@ -54,6 +54,63 @@ class GameObject:
     def display(self, window, scroll_x, scroll_y):
         window.blit(self.sprite, ((self.x - scroll_x), (self.y - scroll_y)))
 
+class SpecialObject:
+    def __init__(self, index, sprite_path, x, y, static):
+        self.index = index
+        self.sprite_path = sprite_path
+        self.sprite = pg.transform.scale(pg.image.load(f'images/special/{self.sprite_path}.png').convert_alpha(), (100, 100))   
+        self.x = x
+        self.y = y
+        self.sprite_rotation = 0
+        self.sprite_scale = 100
+        self.static = static
+        self.transform_move = False
+        self.transform_rotate = False
+        self.transform_scale = False
+
+    def move(self, x, y):
+        self.x = x - self.sprite_scale / 2
+        self.y = y - self.sprite_scale / 2
+
+        if self.x < 0:
+            self.x = 0
+        if self.y < 0:
+            self.y = 0
+
+    def rotate(self, delta):
+        self.sprite_rotation = delta
+        sprite = pg.image.load(f'images/special/{self.sprite_path}.png').convert_alpha()
+        sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale))
+        self.sprite = pg.transform.rotate(sprite, delta)
+        
+    def scale(self, delta):
+        if delta > 0:
+            self.sprite_scale = delta
+            sprite = pg.image.load(f'images/special/{self.sprite_path}.png').convert_alpha()
+            sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale))
+            self.sprite = pg.transform.rotate(sprite, self.sprite_rotation)
+
+    def collidepoint(self, position):
+        rect = pg.Rect(self.x, self.y, self.sprite_scale, self.sprite_scale)
+        if rect.collidepoint(position):
+            return True
+        return False
+    
+    def display(self, window, scroll_x, scroll_y):
+        window.blit(self.sprite, ((self.x - scroll_x), (self.y - scroll_y)))
+
+class Finish(SpecialObject):
+    def __init__(self, index, x, y, static):
+        super().__init__(index, 0, x, y, static)
+
+class Checkpoint(SpecialObject):
+    def __init__(self, index, x, y, static):
+        super().__init__(index, 1, x, y, static)
+
+class Spawnpoint(SpecialObject):
+    def __init__(self, index, x, y, static):
+        super().__init__(index, 2, x, y, static)
+
 class Editor:
     def __init__(self, width, height, window):
         # Editor Layout     
@@ -90,6 +147,7 @@ class Editor:
         self.active_asset = None
         self.current_game_object = None 
         self.game_objects = []
+        self.special_objects = []
         self.object_id = 0
 
         # Transform
@@ -119,7 +177,7 @@ class Editor:
         asset_list = []
         for i in range(self.asset_count):
             img = pg.image.load(f'images/assets/{i}.png').convert_alpha()
-            img = pg.transform.scale(img, (self.tile_size, self.tile_size))
+            img = pg.transform.scale(img, (self.tile_size * 2, self.tile_size * 2))
             asset_list.append(img)
 
         special_list = []
@@ -147,7 +205,7 @@ class Editor:
         asset_col = 0
         asset_row = 0
         for i in range(len(self.asset_list)):
-            asset_button = Button(image=self.asset_list[i], pos=((self.width- self.right_margin) + (75 * asset_col) + 50, 75 * asset_row + 400),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
+            asset_button = Button(image=self.asset_list[i], pos=((self.width- self.right_margin) + (75 * asset_col) + 50, 75 * asset_row + 300),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
             asset_list.append(asset_button)
             asset_col += 1
             if asset_col == 3:
@@ -158,7 +216,7 @@ class Editor:
         special_col = 0
         special_row = 0
         for i in range(len(self.special_list)):
-            special_button = Button(image=self.special_list[i], pos=((self.width- self.right_margin) + (75 * special_col) + 50, 75 * special_row + 700),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
+            special_button = Button(image=self.special_list[i], pos=((self.width- self.right_margin) + (75 * special_col) + 50, 75 * special_row + 500),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
             special_list.append(special_button)
             special_col += 1
             if special_col == 3:
@@ -194,7 +252,8 @@ class Editor:
     def draw_panel(self):
         pg.draw.rect(self.window, pg.color.Color(85,107,47), (self.width - self.right_margin, 0, self.right_margin, self.height))
         self.draw_text("Tiles", pg.font.Font('images/Fonts/foo.otf', 50), "black", self.width - (self.right_margin / 2), 50)
-        self.draw_text("Assets", pg.font.Font('images/Fonts/foo.otf', 50), "black", self.width - (self.right_margin / 2), 350)
+        self.draw_text("Assets", pg.font.Font('images/Fonts/foo.otf', 50), "black", self.width - (self.right_margin / 2), 250)
+        self.draw_text("Special", pg.font.Font('images/Fonts/foo.otf', 50), "black", self.width - (self.right_margin / 2), 400)
 
         for button in self.tile_button_list:
             button.update(self.window)
@@ -333,14 +392,34 @@ class Editor:
             self.active_asset.transform_scale = False                                
             self.current_game_object = self.active_asset
             self.current_game_object.static = True
-            self.game_objects.append(self.current_game_object)
-            self.object_id += 1
-            self.active_asset = None                      
+            if type(self.current_game_object) == GameObject:
+                self.game_objects.append(self.current_game_object)
+                self.object_id += 1
+                self.active_asset = None
+            else:
+                self.special_objects.append(self.current_game_object)
+                self.object_id += 1
+                self.active_asset = None           
 
     def create_new_gameobject(self, event):
         for num, asset in enumerate(self.asset_button_list):
             if asset.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):                                   
                 self.active_asset = GameObject(self.object_id, num, event.pos[0] - self.scroll_x, event.pos[1] - self.scroll_y, False) 
+                self.object_id += 1
+                self.active_asset.transform_move = True
+                self.draw = False
+
+        for  num, special_object in enumerate(self.special_button_list):
+            if special_object.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
+                if num == 0:
+                    self.active_asset = Finish(self.object_id, event.pos[0] - self.scroll_x, event.pos[1] - self.scroll_y, False)
+                
+                elif num == 1:               
+                    self.active_asset = Checkpoint(self.object_id, event.pos[0] - self.scroll_x, event.pos[1] - self.scroll_y, False)
+
+                else:
+                    self.active_asset = Spawnpoint(self.object_id, event.pos[0] - self.scroll_x, event.pos[1] - self.scroll_y, False)
+
                 self.object_id += 1
                 self.active_asset.transform_move = True
                 self.draw = False
@@ -363,6 +442,10 @@ class Editor:
             self.game_objects.remove(self.current_game_object)
             self.current_game_object = None
 
+        if self.special_objects.__contains__(self.current_game_object):
+            self.special_objects.remove(self.current_game_object)
+            self.current_game_object = None
+
     def start_scaling_object(self):
         self.active_asset = self.current_game_object 
         self.object_id += 1                                   
@@ -372,17 +455,31 @@ class Editor:
             self.game_objects.remove(self.current_game_object)
             self.current_game_object = None
 
+        if self.special_objects.__contains__(self.current_game_object):
+            self.special_objects.remove(self.current_game_object)
+            self.current_game_object = None
+
     def select_gameobject(self):
         for game_object in self.game_objects:
             if game_object.static == True:
                 mouse_pos = (pg.mouse.get_pos()[0] + self.scroll_x, pg.mouse.get_pos()[1] + self.scroll_y)
                 if game_object.collidepoint(mouse_pos):                           
                     self.current_game_object = game_object
-                    self.draw = False                   
+                    self.draw = False
+
+        for special_object in self.special_objects:
+            if special_object.static == True:
+                mouse_pos = (pg.mouse.get_pos()[0] + self.scroll_x, pg.mouse.get_pos()[1] + self.scroll_y)
+                if special_object.collidepoint(mouse_pos):                           
+                    self.current_game_object = special_object
+                    self.draw = False                       
 
     def display_game_objects(self):
         for game_object in self.game_objects:
             game_object.display(self.window, self.scroll_x, self.scroll_y) 
+
+        for special_object in self.special_objects:
+            special_object.display(self.window, self.scroll_x, self.scroll_y)
 
     def display_transform(self):
         if self.current_game_object != None:
@@ -406,7 +503,6 @@ class Editor:
                 writer.writerow(row)
 
         # Save Game Object
-        fields = ["Object Index", "Transform"]
         game_objects = []
         for game_object in self.game_objects:
             game_objects.append({"Index" : game_object.index, "Sprite": game_object.sprite_path, "Position" : (game_object.x, game_object.y), "Rotation" : game_object.sprite_rotation, "Scale" : game_object.sprite_scale})
@@ -422,7 +518,26 @@ class Editor:
             writer.writeheader()  
 
             for game_object in game_objects_list:
-                writer.writerow(game_object)          
+                writer.writerow(game_object)   
+
+        # Save Special Object
+        special_objects = []
+        for special_object in self.special_objects:
+            special_objects.append({"Index" : special_object.index, "Sprite" : special_object.sprite_path, "Position" : (special_object.x, special_object.y), "Rotation" : special_object.sprite_rotation, "Scale" : special_object.sprite_scale})  
+
+        special_objects_list = []
+        for special_object in special_objects:
+            special_objects_list.append(special_object)
+
+        fieldnames = ["Index", "Sprite", "Position", "Rotation", "Scale"]
+        with open(f'level_special_object_data.csv', 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            writer.writeheader()
+
+            for special_object in special_objects_list:
+                writer.writerow(special_object)
+        
 
     def load_level(self):
         
@@ -463,6 +578,43 @@ class Editor:
             new_game_object.rotate(int(float(game_object["Rotation"])))
             new_game_object.scale(int(float(game_object["Scale"])))
             self.game_objects.append(new_game_object)
+
+        csv_file_path = "level_special_object_data.csv"
+
+        loaded_special_objects = []
+
+        # Read the CSV file and populate the list of dictionaries
+        with open(csv_file_path, mode="r") as csv_file:
+            reader = csv.DictReader(csv_file)
+        
+            # Iterate through the rows in the CSV file
+            for row in reader:
+                # Append each row (as a dictionary) to the loaded_game_objects list
+                loaded_special_objects.append(dict(row))
+
+        # Print the loaded data
+        for special_object in loaded_special_objects:
+            position = ()
+            try:
+                result_tuple = ast.literal_eval(special_object["Position"])
+                if isinstance(result_tuple, tuple):
+                    position = result_tuple
+                else:
+                    print("The input string did not represent a valid tuple.")
+            except (ValueError, SyntaxError):
+                print("An error occurred while converting the string.") 
+
+            if int(float(special_object["Sprite"])) == 0:
+                new_special_object = Finish(int(special_object["Index"]) + 100, position[0], position[1], True)
+            elif int(float(special_object["Sprite"])) == 1:
+                new_special_object = Checkpoint(int(special_object["Index"]) + 100, position[0], position[1], True)
+            else:
+                new_special_object = Spawnpoint(int(special_object["Index"]) + 100, position[0], position[1], True)
+
+            new_special_object.rotate(int(float(special_object["Rotation"])))
+            new_special_object.scale(int(float(special_object["Scale"])))
+            self.special_objects.append(new_special_object)
+        
             
 
     def run(self):
