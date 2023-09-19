@@ -3,15 +3,15 @@ import sys
 from editor import Editor
 
 #Display Window
-SCREEN_Height = 500
-SCREEN_WIDTH = 800
+SCREEN_Height = 740
+SCREEN_WIDTH = 1100
 
-screen = pygame.display.set_mode((SCREEN_Height,SCREEN_WIDTH))
+screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_Height))
 pygame.display.set_caption('Button demo')
 
 #load button images
-start_img = pygame.image.load('EFWuche/images/mael/start_button.png').convert_alpha()
-quit_img = pygame.image.load('EFWuche/images/mael/exit_button.png').convert_alpha() 
+start_img = pygame.image.load('images/button.png').convert_alpha()
+quit_img = pygame.image.load('images/button.png').convert_alpha() 
 
 #button class 
 class Button():

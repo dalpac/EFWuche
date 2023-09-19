@@ -66,14 +66,15 @@ class Editor:
         # Grid
         self.rows = 150
         self.columns = 150
-        self.scroll_x = 0
-        self.scroll_y = 0
+        self.scroll_x = 75*46
+        self.scroll_y = 75*46
         self.scroll_speed = 1
         self.scroll_x_direction = 0
         self.scroll_y_direction = 0
         self.tile_size = 46
         self.tile_count = len(os.listdir('images/tiles/'))
         self.asset_count = len(os.listdir('images/assets/'))
+        self.special_count= len(os.listdir('images/special'))
         self.draw = False
 
         # Pygame
@@ -81,8 +82,8 @@ class Editor:
         self.tick_rate = 60
 
         # Assets
-        self.tile_list, self.asset_list = self.import_assets()
-        self.tile_button_list, self.asset_button_list = self.create_buttons()
+        self.tile_list, self.asset_list, self.special_list = self.import_assets()
+        self.tile_button_list, self.asset_button_list, self.special_button_list = self.create_buttons()
         self.world_data = self.get_world_data()
 
         self.current_tile = 0
@@ -121,7 +122,13 @@ class Editor:
             img = pg.transform.scale(img, (self.tile_size, self.tile_size))
             asset_list.append(img)
 
-        return tile_list, asset_list
+        special_list = []
+        for i in range(self.special_count):
+            img = pg.image.load(f'images/special/{i}.png').convert_alpha()
+            img = pg.transform.scale(img, (self.tile_size, self.tile_size))
+            special_list.append(img)
+
+        return tile_list, asset_list, special_list
     
     def create_buttons(self):
         #make a button list
@@ -147,7 +154,18 @@ class Editor:
                 asset_row += 1
                 asset_col = 0
 
-        return tile_list, asset_list
+        special_list = []
+        special_col = 0
+        special_row = 0
+        for i in range(len(self.special_list)):
+            special_button = Button(image=self.special_list[i], pos=((self.width- self.right_margin) + (75 * special_col) + 50, 75 * special_row + 700),text_input="", font=pg.font.Font('images/Fonts/foo.otf'), base_color="#000000", hovering_color="#333333")
+            special_list.append(special_button)
+            special_col += 1
+            if special_col == 3:
+                special_row += 1
+                special_col = 0
+
+        return tile_list, asset_list, special_list
     
     def get_world_data(self):
         world_data = []
@@ -184,6 +202,9 @@ class Editor:
         for button in self.asset_button_list:
             button.update(self.window)
 
+        for button in self.special_button_list:
+            button.update(self.window)
+
         # Get Selected
         button_count = 0
         button_list = self.tile_button_list
@@ -191,7 +212,7 @@ class Editor:
             if i.draw(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
                 self.current_tile = button_count
                 self.current_game_object = None
-                self.draw = True
+                self.draw = True                
 
         # Highlight the selected tile
         if self.draw == True:
@@ -221,15 +242,16 @@ class Editor:
         x = (pos[0] + self.scroll_x) // self.tile_size
         y = (pos[1] + self.scroll_y) // self.tile_size    
 
-        #check that the coordinates are within the tile area
-        if (self.active_asset == None):
-            if pos[0] < (self.width - self.right_margin) and pos[1] < self.height:
-                #update tile value
-                if pg.mouse.get_pressed()[0] == 1:
-                    if self.world_data[y][x] != self.current_tile:
-                        self.world_data[y][x] = self.current_tile
-                if pg.mouse.get_pressed()[2] == 1:
-                    self.world_data[y][x] = -1  
+        if (self.draw == True):
+            #check that the coordinates are within the tile area
+            if (self.active_asset == None):
+                if pos[0] < (self.width - self.right_margin) and pos[1] < self.height:
+                    #update tile value                
+                    if pg.mouse.get_pressed()[0] == 1:
+                        if self.world_data[y][x] != self.current_tile:
+                            self.world_data[y][x] = self.current_tile
+                    if pg.mouse.get_pressed()[2] == 1:
+                        self.world_data[y][x] = -1  
 
     def receive_input(self):
         for event in pg.event.get():
@@ -321,6 +343,7 @@ class Editor:
                 self.active_asset = GameObject(self.object_id, num, event.pos[0] - self.scroll_x, event.pos[1] - self.scroll_y, False) 
                 self.object_id += 1
                 self.active_asset.transform_move = True
+                self.draw = False
 
     def start_moving_object(self):
         self.active_asset = self.current_game_object
@@ -435,8 +458,12 @@ class Editor:
                     print("The input string did not represent a valid tuple.")
             except (ValueError, SyntaxError):
                 print("An error occurred while converting the string.") 
-                               
-            self.game_objects.append(GameObject(int(game_object["Index"]) + 100, int(game_object["Sprite"]), result_tuple[0], result_tuple[1], True))
+
+            new_game_object = GameObject(int(game_object["Index"]) + 100, int(game_object["Sprite"]), position[0], position[1], True)
+            new_game_object.rotate(int(float(game_object["Rotation"])))
+            new_game_object.scale(int(float(game_object["Scale"])))
+            self.game_objects.append(new_game_object)
+            
 
     def run(self):
         pg.display.set_caption("Super Mario Cart")
@@ -468,5 +495,5 @@ class Editor:
 
 
 
-editor = Editor(1100, 740, window)
-editor.run()
+#editor = Editor(1100, 740, window)
+#editor.run()
