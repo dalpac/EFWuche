@@ -1,5 +1,6 @@
 import pygame
-import sys   
+import sys  
+from editor import Editor
 
 #Display Window
 SCREEN_Height = 500
@@ -54,7 +55,8 @@ run = True
 while run==True: 
     screen.fill((202,228,241))
     if start_button.draw():
-        print('start game')
+        editor = Editor(1100, 740, screen)
+        editor.run()
 
     if exit_button.draw():
         run = False 
