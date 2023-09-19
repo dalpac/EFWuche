@@ -2,13 +2,16 @@ import pygame as pg
 import sys
 from button import Button
 import os
+import csv
+import ast
 
 pg.init()
 
 window = pg.display.set_mode((1100, 740))
 
 class GameObject:
-    def __init__(self, sprite_path, x, y, static):
+    def __init__(self, index, sprite_path, x, y, static):
+        self.index = index
         self.sprite_path = sprite_path
         self.sprite = pg.transform.scale(pg.image.load(f'images/assets/{self.sprite_path}.png').convert_alpha(), (100, 100))   
         self.x = x
@@ -23,6 +26,11 @@ class GameObject:
     def move(self, x, y):
         self.x = x - self.sprite_scale / 2
         self.y = y - self.sprite_scale / 2
+
+        if self.x < 0:
+            self.x = 0
+        if self.y < 0:
+            self.y = 0
 
     def rotate(self, delta):
         self.sprite_rotation = delta
@@ -66,6 +74,7 @@ class Editor:
         self.tile_size = 46
         self.tile_count = len(os.listdir('images/tiles/'))
         self.asset_count = len(os.listdir('images/assets/'))
+        self.draw = False
 
         # Pygame
         self.clock = pg.time.Clock()
@@ -80,11 +89,24 @@ class Editor:
         self.active_asset = None
         self.current_game_object = None 
         self.game_objects = []
+        self.object_id = 0
 
         # Transform
         self.move_img = pg.transform.scale(pg.image.load('images/move.png'), (50, 50))
         self.rotate_img = pg.transform.scale(pg.image.load('images/rotate.png'), (50, 50))
-        self.scale_img = pg.transform.scale(pg.image.load('images/scale.png'), (50, 50))       
+        self.scale_img = pg.transform.scale(pg.image.load('images/scale.png'), (50, 50))
+
+        # Save / Load
+        self.button_img = pg.transform.scale(pg.image.load('images/button.png').convert_alpha(), (300, 50))
+        self.save_button = Button(image=self.button_img, 
+                             pos=(self.width - (self.right_margin / 2), 650), 
+                             text_input="SAVE", font=pg.font.Font('images/Fonts/foo.otf', 30), 
+                             base_color="#000000", hovering_color="#333333")
+        
+        self.load_button = Button(image=self.button_img, 
+                             pos=(self.width - (self.right_margin / 2), 700), 
+                             text_input="LOAD", font=pg.font.Font('images/Fonts/foo.otf', 30), 
+                             base_color="#000000", hovering_color="#333333")
 
     def import_assets(self):
         tile_list = []
@@ -169,9 +191,11 @@ class Editor:
             if i.draw(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
                 self.current_tile = button_count
                 self.current_game_object = None
+                self.draw = True
 
         # Highlight the selected tile
-        pg.draw.rect(self.window, "red", button_list[self.current_tile].rect, 3)
+        if self.draw == True:
+            pg.draw.rect(self.window, "red", button_list[self.current_tile].rect, 3)
 
     def draw_text(self, text, font, text_col, x, y):
         img = font.render(text, True, text_col) 
@@ -252,7 +276,13 @@ class Editor:
                 if event.type == pg.MOUSEBUTTONUP:
                     if event.button == 1:
                         if self.active_asset != None:
-                            self.drop()                            
+                            self.drop() 
+
+        if self.save_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
+            self.save_level()
+
+        if self.load_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
+            self.load_level()                
 
     def drag(self, event):
         if self.current_game_object != None:  
@@ -264,6 +294,9 @@ class Editor:
 
             elif self.scale_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
                 self.start_scaling_object()
+
+            else:
+                self.current_game_object = None
 
         else:  
             self.select_gameobject()    
@@ -279,16 +312,19 @@ class Editor:
             self.current_game_object = self.active_asset
             self.current_game_object.static = True
             self.game_objects.append(self.current_game_object)
+            self.object_id += 1
             self.active_asset = None                      
 
     def create_new_gameobject(self, event):
         for num, asset in enumerate(self.asset_button_list):
             if asset.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):                                   
-                self.active_asset = GameObject(num, event.pos[0] - self.scroll_x, event.pos[1] - self.scroll_y, False) 
+                self.active_asset = GameObject(self.object_id, num, event.pos[0] - self.scroll_x, event.pos[1] - self.scroll_y, False) 
+                self.object_id += 1
                 self.active_asset.transform_move = True
 
     def start_moving_object(self):
         self.active_asset = self.current_game_object
+        self.object_id += 1
         self.active_asset.transform_move = True
 
         if self.game_objects.__contains__(self.current_game_object):
@@ -297,6 +333,7 @@ class Editor:
 
     def start_rotating_object(self):
         self.active_asset = self.current_game_object
+        self.object_id += 1
         self.active_asset.transform_rotate = True
 
         if self.game_objects.__contains__(self.current_game_object):
@@ -304,7 +341,8 @@ class Editor:
             self.current_game_object = None
 
     def start_scaling_object(self):
-        self.active_asset = self.current_game_object                                    
+        self.active_asset = self.current_game_object 
+        self.object_id += 1                                   
         self.active_asset.transform_scale = True
 
         if self.game_objects.__contains__(self.current_game_object):
@@ -314,8 +352,10 @@ class Editor:
     def select_gameobject(self):
         for game_object in self.game_objects:
             if game_object.static == True:
-                if game_object.collidepoint(pg.mouse.get_pos()):                           
+                mouse_pos = (pg.mouse.get_pos()[0] + self.scroll_x, pg.mouse.get_pos()[1] + self.scroll_y)
+                if game_object.collidepoint(mouse_pos):                           
                     self.current_game_object = game_object
+                    self.draw = False                   
 
     def display_game_objects(self):
         for game_object in self.game_objects:
@@ -329,7 +369,74 @@ class Editor:
 
             self.move_button.update(self.window)
             self.rotate_button.update(self.window)
-            self.scale_button.update(self.window)  
+            self.scale_button.update(self.window)
+
+    def display_buttons(self):               
+        self.save_button.update(self.window)
+        self.load_button.update(self.window)
+
+    def save_level(self):
+        # Save Tiles
+        with open(f'level_data.csv', 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile, delimiter = ',')
+            for row in self.world_data:
+                writer.writerow(row)
+
+        # Save Game Object
+        fields = ["Object Index", "Transform"]
+        game_objects = []
+        for game_object in self.game_objects:
+            game_objects.append({"Index" : game_object.index, "Sprite": game_object.sprite_path, "Position" : (game_object.x, game_object.y), "Rotation" : game_object.sprite_rotation, "Scale" : game_object.sprite_scale})
+
+        game_objects_list = []
+        for game_object in game_objects:
+            game_objects_list.append(game_object)
+
+        fieldnames = ["Index", "Sprite", "Position", "Rotation", "Scale"]
+        with open(f'level_object_data.csv', 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            writer.writeheader()  
+
+            for game_object in game_objects_list:
+                writer.writerow(game_object)          
+
+    def load_level(self):
+        
+        self.scroll = 0
+        with open(f'level_data.csv', newline='') as csvfile:
+            reader = csv.reader(csvfile, delimiter = ',')
+            for x, row in enumerate(reader):
+                for y, tile in enumerate(row):
+                    self.world_data[x][y] = int(tile)  
+
+        csv_file_path = "level_object_data.csv"
+
+        # Initialize an empty list to store the loaded data
+        loaded_game_objects = []
+
+        # Read the CSV file and populate the list of dictionaries
+        with open(csv_file_path, mode="r") as csv_file:
+            reader = csv.DictReader(csv_file)
+        
+            # Iterate through the rows in the CSV file
+            for row in reader:
+                # Append each row (as a dictionary) to the loaded_game_objects list
+                loaded_game_objects.append(dict(row))
+
+        # Print the loaded data
+        for game_object in loaded_game_objects:
+            position = ()
+            try:
+                result_tuple = ast.literal_eval(game_object["Position"])
+                if isinstance(result_tuple, tuple):
+                    position = result_tuple
+                else:
+                    print("The input string did not represent a valid tuple.")
+            except (ValueError, SyntaxError):
+                print("An error occurred while converting the string.") 
+                               
+            self.game_objects.append(GameObject(int(game_object["Index"]) + 100, int(game_object["Sprite"]), result_tuple[0], result_tuple[1], True))
 
     def run(self):
         pg.display.set_caption("Super Mario Cart")
@@ -348,6 +455,7 @@ class Editor:
             self.draw_panel()          
             self.update_scroll()
             self.update_tile()
+            self.display_buttons()
             self.display_transform()
 
             if self.active_asset != None:
