@@ -15,7 +15,7 @@ quit_img = pygame.image.load('images/button.png').convert_alpha()
 
 #button class 
 class Button():
-    def __init__(self,x,y,image,scale):
+    def __init__(self,x,y,image,scale,base_color, font,text_input):
         self.width = image.get_width()
         self.height = image.get_height()     
         self.image = pygame.transform.scale(image, (int(self.width * scale), int(self.height*scale)))
@@ -23,9 +23,15 @@ class Button():
         self.rect = self.image.get_rect()
         self.rect.topleft = (x,y)
         self.clicked = False
+        self.base_color = base_color
+        self.text_input = text_input
+        self.font = font 
+        self.text = self.font.render(self.text_input, True, self.base_color)
+
 
     def draw(self): 
         action = False 
+        self.font.render(self.text_input, True, self.base_color)
         #get mouse position
         position = pygame.mouse.get_pos()
         
@@ -47,8 +53,8 @@ class Button():
     
 
 #Button instances
-start_button = Button(SCREEN_WIDTH / 2,300,start_img,1)
-exit_button = Button(SCREEN_WIDTH / 2,100,quit_img,1)
+start_button = Button(SCREEN_WIDTH / 2,300,start_img,1,'black',pygame.font.Font('images/Fonts/foo.otf'),'PLAY')
+exit_button = Button(SCREEN_WIDTH / 2,100,quit_img,1,'black',pygame.font.Font('images/Fonts/foo.otf'),'EXIT')
 
 
 #Game loop 
