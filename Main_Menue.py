@@ -16,9 +16,10 @@ quit_img = pygame.image.load('images/button.png').convert_alpha()
 #button class 
 class Button():
     def __init__(self,x,y,image,scale):
-        width = image.get_width()
-        height = image.get_height()
-        self.image = pygame.transform.scale(image, (int(width * scale), int(height*scale)))
+        self.width = image.get_width()
+        self.height = image.get_height()     
+        self.image = pygame.transform.scale(image, (int(self.width * scale), int(self.height*scale)))
+        self.scale = self.width * scale
         self.rect = self.image.get_rect()
         self.rect.topleft = (x,y)
         self.clicked = False
@@ -39,15 +40,15 @@ class Button():
         
             
         #draw button on screen
-        screen.blit(self.image, (self.rect.x, self.rect.y))
+        screen.blit(self.image, (self.rect.x - self.scale / 2, self.rect.y))
         
         return action 
         
     
 
 #Button instances
-start_button = Button(100,300,start_img,0.8)
-exit_button = Button(10,100,quit_img,0.8)
+start_button = Button(SCREEN_WIDTH / 2,300,start_img,1)
+exit_button = Button(SCREEN_WIDTH / 2,100,quit_img,1)
 
 
 #Game loop 
