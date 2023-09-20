@@ -57,44 +57,56 @@ class Button():
 
 button_img = pygame.transform.scale(pygame.image.load('images/button.png').convert_alpha(), (800, 180))
 
-continue_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,500),text_input="PLAY", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
-main_menue_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,300),text_input="EXIT", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
-quit_game_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,100),text_input="QUIT", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
+continue_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,100),text_input="Continue", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
+main_menue_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,300),text_input="Main Menue", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
+quit_game_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,500),text_input="QUIT", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
 
 
 
 
-
-
-for event in pygame.event.get():
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_ESCAPE:
-            continue_button.draw()
             
-              
+
+
+
+
+
+x = False 
              
-             
-
-
-
 run = True
 while run==True: 
-    screen.fill((202,228,241))
-
-    if quit_game_button.draw():
-        run = False 
-
-    if main_menue_button.draw():
-        pass
-
-    if continue_button.draw():
-        pass
-
-    #event handler
+    screen.fill('black')
+     #event handler
     for event in pygame.event.get():
     #quit game
         if event.type == pygame.QUIT:
+            run = False 
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                if x==True:
+                    x = False
+                else: 
+                    x = True
+    if x == True:
+        if continue_button.draw() == True:
+            x=False
+    
+        main_menue_button.draw()
+        if quit_game_button.draw() == True:
             run = False
-    pygame.display.update()
+            print(run)
 
-pygame.quit 
+        
+    pygame.display.update()
+                
+                    
+
+
+pygame.quit() 
+  
+        
+
+
+        
+    
+
+
