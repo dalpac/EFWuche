@@ -48,9 +48,9 @@ class Button():
             
             return action 
 
-continue_button = Button(SCREEN_WIDTH / 2,300,start_img,1,'black',pygame.font.Font('EFWuche/images/Fonts/foo.otf', 50),'PLAY')
-main_menue_button = Button(SCREEN_WIDTH / 2,200,quit_img,1,'black',pygame.font.Font('EFWuche/images/Fonts/foo.otf', 50),'EXIT')
-quit_game_button = Button(SCREEN_WIDTH / 2,100,start_img,'black',pygame.font.Font('EFWuche/images/Fonts/foo.otf', 50),'PLAY')
+continue_button = Button(SCREEN_WIDTH / 2,300,start_img,1,'black',pygame.font.Font('images/Fonts/foo.otf', 50),'PLAY')
+main_menue_button = Button(SCREEN_WIDTH / 2,200,quit_img,1,'black',pygame.font.Font('images/Fonts/foo.otf', 50),'EXIT')
+quit_game_button = Button(SCREEN_WIDTH / 2,100,start_img,'black',pygame.font.Font('images/Fonts/foo.otf', 50),'PLAY')
 
 
 
