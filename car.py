@@ -84,35 +84,33 @@ clock = pygame.time.Clock()
 # Spiel-Loop
 running = True
 while running:
+    keys = pygame.key.get_pressed()
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
-        elif event.type == KEYDOWN:
-            if event.key == K_LEFT:
-                my_car.accelerate_x(-CAR_SPEED)
-            elif event.key == K_RIGHT:
-                my_car.accelerate_x(CAR_SPEED)
-            elif event.key == K_UP:
-                my_car.accelerate_y(-CAR_SPEED)
-            elif event.key == K_DOWN:
-                my_car.accelerate_y(CAR_SPEED)
+    if keys [K_LEFT]:
+        my_car.accelerate_x(-CAR_SPEED)
+    elif keys[K_RIGHT]:
+        my_car.accelerate_x(CAR_SPEED)
+    elif keys[K_UP]:
+        my_car.accelerate_y(-CAR_SPEED)
+    elif keys[K_DOWN]:
+        my_car.accelerate_y(CAR_SPEED)
         #elif event.type == KEYUP:
-            if event.key == K_SPACE:
-                my_car.brake_x(CAR_SPEED)
-                my_car.brake_y(CAR_SPEED)
-
-    
+    if keys[K_SPACE]:
+        my_car.brake_x(CAR_SPEED)
+        my_car.brake_y(CAR_SPEED)
 
     my_car.move()
 
     #mache dass am Feldrand das Auto stehen bleibt.
     if my_car.x_pos == 0 and my_car.x_speed < 0:
         my_car.x_speed = 0
-    elif my_car.x_pos == SCREEN_WIDTH and my_car.x_speed > 0:
+    elif my_car.x_pos == SCREEN_WIDTH-my_car.car_width and my_car.x_speed > 0:
         my_car.x_speed = 0
     if my_car.y_pos == 0 and my_car.y_speed > 0:
         my_car.x_speed = 0
-    elif my_car.y_pos == SCREEN_HEIGHT and my_car.y_speed > 0:
+    elif my_car.y_pos == SCREEN_HEIGHT-my_car.car_height and my_car.y_speed > 0:
         my_car.y_speed = 0
     
     # Aktualisiere die Position des Autos
