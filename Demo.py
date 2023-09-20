@@ -27,7 +27,7 @@ class Car:
         self.angular_velocity = 0
         self.vector = pg.Vector2.from_polar((1, self.rotation))
         self.drag_coefficient = 0.03
-        self.angular_drag_coefficient = 0.03
+        self.angular_drag_coefficient = 0.1
 
     def step(self, tick_rate):
         
@@ -292,6 +292,8 @@ class Demo:
                 self.player = Car("Honda", "Civic Type R", 2018, 2, pg.Vector2(new_special_object.x, new_special_object.y), 0, False)
                 self.cars.append(self.player)
                 self.physics_objects.append(self.player)
+                self.scroll_x = self.player.position[0] - 100
+                self.scroll_y = self.player.position[1] - 350
 
             elif int(float(special_object["Sprite"])) == 1:
                 new_special_object = Checkpoint(int(special_object["Index"]) + 100, position[0], position[1], True)
@@ -331,9 +333,9 @@ class Demo:
             
         keys = pg.key.get_pressed()
         if keys[pg.K_w]:
-            self.player.add_force(-20)
+            self.player.add_force(-10)
         if keys[pg.K_s]:
-            self.player.add_force(20)   
+            self.player.add_force(10)   
 
         if keys[pg.K_a]:
             self.player.add_torque(-5)          
