@@ -319,6 +319,9 @@ class Editor:
                     sys.exit()
 
                 if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_DELETE:
+                        self.delete_game_object()
+
                     if event.key == pg.K_LEFT:
                         self.scroll_x_direction = -1
                     if event.key == pg.K_RIGHT:
@@ -472,7 +475,14 @@ class Editor:
                 mouse_pos = (pg.mouse.get_pos()[0] + self.scroll_x, pg.mouse.get_pos()[1] + self.scroll_y)
                 if special_object.collidepoint(mouse_pos):                           
                     self.current_game_object = special_object
-                    self.draw = False                       
+                    self.draw = False   
+
+    def delete_game_object(self):
+        if self.game_objects.__contains__(self.current_game_object):
+            self.game_objects.remove(self.current_game_object)
+        else:
+            self.special_objects.remove(self.current_game_object)
+        self.current_game_object = None
 
     def display_game_objects(self):
         for game_object in self.game_objects:
@@ -538,7 +548,6 @@ class Editor:
             for special_object in special_objects_list:
                 writer.writerow(special_object)
         
-
     def load_level(self):
         
         self.scroll = 0
