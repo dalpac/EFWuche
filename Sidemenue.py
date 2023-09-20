@@ -1,15 +1,13 @@
 import pygame
-import sys  
-from editor import Editor
 
-#Display Window
+pygame.init()
+
 SCREEN_Height = 740
 SCREEN_WIDTH = 1100
 
 screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_Height))
 pygame.display.set_caption('Button demo')
 
-#load button images
 start_img = pygame.image.load('images/button.png').convert_alpha()
 quit_img = pygame.image.load('images/button.png').convert_alpha() 
 
@@ -56,26 +54,41 @@ class Button():
         screen.blit(self.text, self.text_rect)
         
         return action 
-        
-    
 
-#Button instances
 button_img = pygame.transform.scale(pygame.image.load('images/button.png').convert_alpha(), (800, 180))
-start_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,SCREEN_Height  *1/ 4),text_input="Editor", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
-exit_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,SCREEN_Height * 2/ 4),text_input="Exit", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
+
+continue_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,500),text_input="PLAY", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
+main_menue_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,300),text_input="EXIT", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
+quit_game_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,100),text_input="QUIT", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
 
 
 
-#Game loop 
+
+
+
+for event in pygame.event.get():
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_ESCAPE:
+            continue_button.draw()
+            
+              
+             
+             
+
+
+
 run = True
 while run==True: 
     screen.fill((202,228,241))
-    if start_button.draw():
-        editor = Editor(1100, 740, screen)
-        editor.run()
 
-    if exit_button.draw():
+    if quit_game_button.draw():
         run = False 
+
+    if main_menue_button.draw():
+        pass
+
+    if continue_button.draw():
+        pass
 
     #event handler
     for event in pygame.event.get():
@@ -85,4 +98,3 @@ while run==True:
     pygame.display.update()
 
 pygame.quit 
-
