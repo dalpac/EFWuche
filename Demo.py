@@ -16,33 +16,47 @@ class Car:
         self.model = model
         self.year = year
         self.sprite_path = sprite_path
-        self.sprite = pg.transform.scale(pg.image.load(f'images/assets/{self.sprite_path}.png').convert_alpha(), (100, 100))
+        self.sprite = pg.transform.scale(pg.image.load(f'images/cars/{self.sprite_path}.png').convert_alpha(), (100, 100))
         self.position = position
         self.rotation = 0
         self.static = static
 
-        self.velocity = [0, 0]
+        self.velocity = pg.Vector2()
         self.force = pg.Vector2()
         self.torque = 0
         self.angular_velocity = 0
-        self.vector = pg.Vector2()
-        self.vector.from_polar((1, self.rotation))
+        self.vector = pg.Vector2.from_polar((1, self.rotation))
+        self.drag_coefficient = 0.03
+        self.angular_drag_coefficient = 0.03
 
     def step(self, tick_rate):
-        self.velocity[0] += (self.force[0] / tick_rate)
-        self.velocity[1] += (self.force[1] / tick_rate)
+        
 
+        self.velocity = pg.Vector2.__add__(self.velocity, (self.force / tick_rate))
+
+        drag_force = pg.Vector2()
+        drag_magnitude = -0.5 * self.drag_coefficient * self.velocity.magnitude()**2
+        if self.velocity != pg.Vector2():
+            drag_direction = self.velocity.normalize()  # Normalize the velocity to get the direction
+            drag_force = drag_direction * drag_magnitude
+        
+        self.velocity = pg.Vector2.__add__(self.velocity, (drag_force))
+
+        
         self.angular_velocity += (self.torque / tick_rate)
+        angular_drag_torque = -0.5 * self.angular_drag_coefficient * self.angular_velocity
+
+        self.angular_velocity += angular_drag_torque
 
         self.position += self.velocity
-        self.rotation -= self.angular_velocity
-        self.vector.from_polar((1, self.rotation))
+        self.rotation -= self.angular_velocity        
 
         self.force = pg.Vector2()
         self.torque = 0
 
     def add_force(self, force):
-        self.force = force
+        self.vector = pg.Vector2.from_polar((1, self.rotation - 90))
+        self.force = pg.Vector2(self.vector[0] * int(force), - self.vector[1] * int(force))
 
     def add_torque(self, torque):
         self.torque = torque
@@ -275,7 +289,7 @@ class Demo:
 
             if int(float(special_object["Sprite"])) == 0:
                 new_special_object = Finish(int(special_object["Index"]) + 100, position[0], position[1], True)
-                self.player = Car("Honda", "Civic Type R", 2018, 1, pg.Vector2(new_special_object.x, new_special_object.y), 0, False)
+                self.player = Car("Honda", "Civic Type R", 2018, 2, pg.Vector2(new_special_object.x, new_special_object.y), 0, False)
                 self.cars.append(self.player)
                 self.physics_objects.append(self.player)
 
@@ -317,9 +331,9 @@ class Demo:
             
         keys = pg.key.get_pressed()
         if keys[pg.K_w]:
-            self.player.add_force((0, -1))
+            self.player.add_force(-20)
         if keys[pg.K_s]:
-            self.player.add_force((0, 1))   
+            self.player.add_force(20)   
 
         if keys[pg.K_a]:
             self.player.add_torque(-5)          
