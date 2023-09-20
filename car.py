@@ -1,3 +1,5 @@
+
+from images import cars
 import pygame
 from pygame.locals import *
 
@@ -5,8 +7,8 @@ from pygame.locals import *
 pygame.init()
 
 # Constants
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 2000
+SCREEN_HEIGHT = 1200
 #CAR_SPEED = 2  # Geschwindigkeit des Autos
 #DECELERATION = 0.1  # Abnahme der Geschwindigkeit
 MAX_FPS = 45  # Maximale Bildwiederholrate
@@ -16,10 +18,11 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 
 class Car:
-    def __init__(self, make, model, year,  max_speed, brakepower, acceleration, deceleration, car_width, car_height):
+    def __init__(self, make, model, year, image, max_speed, brakepower, acceleration, deceleration, car_width, car_height):
         self.make = make
         self.model = model
         self.year = year
+        self.image = pygame.transform.scale(image, (car_width, car_height))
         self.max_speed = max_speed
         self.brakepower = brakepower
         self.acceleration = acceleration
@@ -35,8 +38,11 @@ class Car:
 #        print(f"{self.color} {self.year} {self.make} {self.model} is starting.")
 
     def accelerate_x(self, dir):
-        if self.x_speed + self.acceleration*dir <= self.max_speed or self.x_speed + self.acceleration*dir > dir*self.max_speed:
-            self.x_speed += self.acceleration*dir
+        if -1*self.max_speed < self.x_speed + self.acceleration*dir < self.max_speed:
+            if self.x_speed + self.acceleration*dir <= self.max_speed or self.x_speed + self.acceleration*dir > dir*self.max_speed:
+                self.x_speed += self.acceleration*dir
+            else:
+                self.x_speed = self.max_speed*dir
         else:
             self.x_speed = self.max_speed*dir
         print(f" {self.year} {self.make} {self.model} is accelerating in the x-direction to {self.x_speed*dir} mph.")
@@ -59,8 +65,11 @@ class Car:
 #            print(f"{self.color} {self.year} {self.make} {self.model} has already stopped in the x-direction.")
 
     def accelerate_y(self, dir):
-        if self.y_speed + self.acceleration*dir <= self.max_speed or self.y_speed + self.acceleration*dir >= dir*self.max_speed:
-            self.y_speed += self.acceleration*dir
+        if -1*self.max_speed < self.y_speed + self.acceleration*dir < self.max_speed:
+            if self.y_speed + self.acceleration*dir <= self.max_speed or self.y_speed + self.acceleration*dir >= dir*self.max_speed:
+                self.y_speed += self.acceleration*dir
+            else:
+                self.y_speed = self.max_speed*dir
         else:
             self.y_speed = self.max_speed*dir
 #        print(f"{self.color} {self.year} {self.make} {self.model} is accelerating in the y-direction to {self.y_speed} mph.")
@@ -104,12 +113,30 @@ class Car:
         self.y_speed = 0
 #        print(f"{self.color} {self.year} {self.make} {self.model} has come to a complete stop.")
 
+
+
+
+
+
+
+
+########################################################################################################################
+
+
+
+
+
+
 # Erstelle das Pygame-Fenster
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Car Game")
 
+
 # Erstelle eine Instanz der Car-Klasse
-my_car = Car("Toyota", "Camry", 2022, 10, 1, 0.5, 0.1, 50, 30)
+car_image = pygame.image.load('images/cars/1.png')
+my_car = Car("Rennauto", "Yellow", 2022, car_image, 10, 1, 0.5, 0.1, 30, 50)
+car_image = pygame.transform.scale(car_image, (my_car.car_width, my_car.car_height))
+
 
 # Erstelle eine Clock-Instanz, um die FPS zu steuern
 clock = pygame.time.Clock()
@@ -148,7 +175,7 @@ while running:
     
     #Untergrunderkennung einfügen
     # Aktualisiere die Position des Autos
-    my_car.move() #nur kommentar in cmd
+    #my_car.move() #nur kommentar in cmd
     my_car.x_pos += my_car.x_speed#*underground
     my_car.y_pos += my_car.y_speed#*underground
 
@@ -162,7 +189,8 @@ while running:
     screen.fill(WHITE)
 
     # Zeichne das Auto
-    pygame.draw.rect(screen, RED, (my_car.x_pos, my_car.y_pos, my_car.car_width, my_car.car_height))
+    #pygame.draw.rect(screen, RED, (my_car.x_pos, my_car.y_pos, my_car.car_width, my_car.car_height))
+    screen.blit(car_image, (my_car.x_pos, my_car.y_pos, my_car.car_width, my_car.car_height))
 
     # Aktualisiere den Bildschirm
     pygame.display.flip()
