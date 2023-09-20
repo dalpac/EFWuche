@@ -7,8 +7,8 @@ pygame.init()
 # Constants
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-CAR_SPEED = 2  # Geschwindigkeit des Autos
-DECELERATION = 0.1  # Abnahme der Geschwindigkeit
+#CAR_SPEED = 2  # Geschwindigkeit des Autos
+#DECELERATION = 0.1  # Abnahme der Geschwindigkeit
 MAX_FPS = 45  # Maximale Bildwiederholrate
 
 # Farben
@@ -85,14 +85,16 @@ class Car:
 
     def decelerate(self):
         # Langsames Verlangsamen, wenn keine Beschleunigung stattfindet
-        if self.x_speed > DECELERATION:
-            self.x_speed -= DECELERATION
-        elif self.x_speed < -1*DECELERATION:
-            self.x_speed += DECELERATION
-        if self.y_speed > DECELERATION:
-            self.y_speed -= DECELERATION
-        elif self.y_speed < -1*DECELERATION:
-            self.y_speed += DECELERATION
+        if self.x_speed - self.deceleration >= 0:
+            self.x_speed -= self.deceleration
+        elif self.x_speed + self.deceleration <= 0:
+            self.x_speed += self.deceleration
+        elif self.y_speed - self.deceleration >= 0:
+            self.y_speed -= self.deceleration
+        elif self.y_speed + self.deceleration <= 0:
+            self.y_speed += self.deceleration
+        else:
+            self.y_speed = 0
 
     def move(self):
         # Aktualisiere die Position des Autos basierend auf seinen x und y Geschwindigkeiten
