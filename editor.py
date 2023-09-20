@@ -171,19 +171,19 @@ class Editor:
         tile_list = []
         for i in range(self.tile_count):
             img = pg.image.load(f'images/tiles/{i}.png').convert_alpha()
-            img = pg.transform.scale(img, (self.tile_size, self.tile_size))
+            img = pg.transform.scale(img, (self.tile_size / 2, self.tile_size / 2))
             tile_list.append(img) 
 
         asset_list = []
         for i in range(self.asset_count):
             img = pg.image.load(f'images/assets/{i}.png').convert_alpha()
-            img = pg.transform.scale(img, (self.tile_size * 2, self.tile_size * 2))
+            img = pg.transform.scale(img, (self.tile_size, self.tile_size))
             asset_list.append(img)
 
         special_list = []
         for i in range(self.special_count):
             img = pg.image.load(f'images/special/{i}.png').convert_alpha()
-            img = pg.transform.scale(img, (self.tile_size, self.tile_size))
+            img = pg.transform.scale(img, (self.tile_size / 2, self.tile_size / 2))
             special_list.append(img)
 
         return tile_list, asset_list, special_list
@@ -247,7 +247,7 @@ class Editor:
         for y, row in enumerate(self.world_data):
             for x, tile in enumerate(row):
                 if tile >= 0:
-                    self.window.blit(self.tile_list[tile], (x * self.tile_size - self.scroll_x, y * self.tile_size - self.scroll_y))
+                    self.window.blit(pg.transform.scale(self.tile_list[tile], (self.tile_size, self.tile_size)), (x * self.tile_size - self.scroll_x, y * self.tile_size - self.scroll_y))
 
     def draw_panel(self):
         pg.draw.rect(self.window, pg.color.Color(85,107,47), (self.width - self.right_margin, 0, self.right_margin, self.height))
