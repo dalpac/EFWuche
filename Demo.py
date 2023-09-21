@@ -6,6 +6,7 @@ import sys
 import threading
 from particles import Particle
 import math
+from car import Car
 
 pg.init()
 
@@ -13,7 +14,7 @@ window = pg.display.set_mode((1100, 740))
 
 camera_smoothness = 0.75
 
-class Car:
+"""class Car:
     def __init__(self, manufacturer, model, year, sprite_path, position, rotation, static):
         self.manufacturer = manufacturer
         self.model = model
@@ -71,7 +72,7 @@ class Car:
             top_left[1] = self.position[1] - scroll_y
             self.rotated_image = pg.transform.rotate(self.sprite, self.rotation + 180)
             new_rect = self.rotated_image.get_rect(center = self.sprite.get_rect(topleft = top_left).center)
-            window.blit(self.rotated_image, new_rect.topleft)
+            window.blit(self.rotated_image, new_rect.topleft)"""
 
 
 class GameObject():
@@ -309,11 +310,11 @@ class Demo:
 
             if int(float(special_object["Sprite"])) == 0:
                 new_special_object = Finish(int(special_object["Index"]) + 100, position[0], position[1], True)
-                self.player = Car("Honda", "Civic Type R", 2018, 0, pg.Vector2(new_special_object.x, new_special_object.y), -90, False)
+                self.player = Car("The Oldtimer of Dracula", "purple", 1923, pg.image.load('images/cars/0.png'), 5, 0.05, 3 / self.tick_rate, 0.02, 1.5, 60, 100, new_special_object.x, new_special_object.y)
                 self.cars.append(self.player)
                 self.physics_objects.append(self.player)
-                self.scroll_x = self.player.position[0] - 100
-                self.scroll_y = self.player.position[1] - 350
+                self.scroll_x = self.player.x_pos - 100
+                self.scroll_y = self.player.y_pos - 350
 
             elif int(float(special_object["Sprite"])) == 1:
                 new_special_object = Checkpoint(int(special_object["Index"]) + 100, position[0], position[1], True)
@@ -387,33 +388,53 @@ class Demo:
                     self.scroll_y_direction = 0
             
         keys = pg.key.get_pressed()
-        if keys[pg.K_w] or keys[pg.K_UP]:
-            self.player.add_force(-20)
+        """if keys[pg.K_w] or keys[pg.K_UP]:
+            self.player.accelerate()
         if keys[pg.K_s] or keys[pg.K_DOWN]:
-            self.player.add_force(20)   
+            self.player.accelerate()   
 
         if keys[pg.K_a] or keys[pg.K_LEFT]:
             self.player.add_torque(-5)          
         
         if keys[pg.K_d] or keys[pg.K_RIGHT]:
-            self.player.add_torque(5)       
+            self.player.add_torque(5)     """
+        if keys [pg.K_LEFT]:
+            self.player.goal_angle = 270
+            self.player.rotate_car_image()
+            self.player.accelerate()
+        elif keys[pg.K_RIGHT]:
+            self.player.goal_angle = 90
+            self.player.rotate_car_image()
+            self.player.accelerate()
+        elif keys[pg.K_UP]:
+            self.player.goal_angle = 180
+            self.player.rotate_car_image()
+            self.player.accelerate()
+        elif keys[pg.K_DOWN]:
+            self.player.goal_angle = 0
+            self.player.rotate_car_image()
+            self.player.accelerate()
+        #elif event.type == KEYUP:
+        if keys[pg.K_SPACE]:
+            self.player.brake()
+  
 
     def update_scroll(self):
         #scroll the map
-        self.scroll_x += self.player.velocity[0]
+        self.scroll_x += self.player.speed[0]
         if self.scroll_x < 0:
             self.scroll_x = 0
         if self.scroll_x > ((self.columns * self.tile_size) - (self.width)):
             self.scroll_x = ((self.columns * self.tile_size) - (self.width))       
 
-        self.scroll_y += self.player.velocity[1]
+        self.scroll_y += self.player.speed[1]
         if self.scroll_y < 0:
             self.scroll_y = 0
         if self.scroll_y > ((self.columns * self.tile_size) - (self.width)):
             self.scroll_y = ((self.columns * self.tile_size) - (self.width)) 
     
     def check_collisions(self):
-        for obstacle in self.obstacles:
+        """for obstacle in self.obstacles:
             #obstacle_rect = pg.Rect(obstacle.x - self.scroll_x, obstacle.y - self.scroll_y, obstacle.sprite_scale, obstacle.sprite_scale)
             obstacle_rect = obstacle.sprite.get_rect()
             obstacle_rect.x = obstacle.x - self.scroll_x
@@ -421,8 +442,8 @@ class Demo:
 
             mask = pg.mask.from_surface(self.player.rotated_image)
             player_rect = mask.get_rect()
-            player_rect.x = self.player.position[0] - self.scroll_x
-            player_rect.y = self.player.position[1] -self.scroll_y
+            player_rect.x = self.player.x_pos - self.scroll_x
+            player_rect.y = self.player.y_pos -self.scroll_y
 
             player_rect.center = self.player.rotated_image.get_rect().center
             player_rect.center = (player_rect.center[0] + self.width / 2, player_rect.center[1] + self.height / 2 + 25)
@@ -433,25 +454,25 @@ class Demo:
             #pg.draw.rect(self.window, "blue", obstacle_rect)
             #pg.draw.rect(self.window, "green", (player_rect))
 
-            for special_object in self.special_objects:
-                special_object_rect = special_object.sprite.get_rect()
-                special_object_rect.x = special_object.x - self.scroll_x
-                special_object_rect.y = special_object.y - self.scroll_y
+        for special_object in self.special_objects:
+            special_object_rect = special_object.sprite.get_rect()
+            special_object_rect.x = special_object.x - self.scroll_x
+            special_object_rect.y = special_object.y - self.scroll_y
 
-                mask = pg.mask.from_surface(self.player.rotated_image)
-                player_rect = mask.get_rect()
-                player_rect.x = self.player.position[0] - self.scroll_x
-                player_rect.y = self.player.position[1] -self.scroll_y
+            mask = pg.mask.from_surface(self.player.rotated_image)
+            player_rect = mask.get_rect()
+            player_rect.x = self.player.x_pos - self.scroll_x
+            player_rect.y = self.player.y_pos -self.scroll_y
 
-                if player_rect.colliderect(special_object_rect):
-                    if type(special_object) == Finish:
-                        if self.current_checkpoint == len(self.checkpoints) - 1:
-                            self.current_checkpoint = -1
-                            self.laps += 1
+            if player_rect.colliderect(special_object_rect):
+                if type(special_object) == Finish:
+                    if self.current_checkpoint == len(self.checkpoints) - 1:
+                        self.current_checkpoint = -1
+                        self.laps += 1
 
-                    if type(special_object) == Checkpoint:
-                        if self.checkpoints.index(special_object) == self.current_checkpoint + 1:
-                            self.current_checkpoint = self.checkpoints.index(special_object)
+                if type(special_object) == Checkpoint:
+                    if self.checkpoints.index(special_object) == self.current_checkpoint + 1:
+                        self.current_checkpoint = self.checkpoints.index(special_object)"""
 
     def count_down(self):
         text = self.font.render(self.countdown_text, True, "black")
@@ -531,9 +552,9 @@ class Demo:
             # Input
             self.receive_input()
 
-            for physics_object in self.physics_objects:
+            """for physics_object in self.physics_objects:
                 if physics_object.static != True:
-                    physics_object.step(self.tick_rate)
+                    physics_object.step(self.tick_rate)"""
 
             # Display World
             self.draw_grid() 
@@ -542,11 +563,11 @@ class Demo:
             self.update_scroll()
             self.check_collisions()          
 
-            for car in self.cars:
-                car.draw(self.scroll_x, self.scroll_y)    
+            self.player.move(self.window, self.scroll_x, self.scroll_y)   
+            self.player.decelerate()
 
-            target_scroll_x = self.player.position[0] - (self.width / 2)
-            target_scroll_y = self.player.position[1] - (self.height / 2)
+            target_scroll_x = self.player.x_pos - (self.width / 2)
+            target_scroll_y = self.player.y_pos - (self.height / 2)
 
             self.scroll_x += (target_scroll_x - self.scroll_x) * camera_smoothness
             self.scroll_y += (target_scroll_y - self.scroll_y) * camera_smoothness

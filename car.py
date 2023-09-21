@@ -17,7 +17,7 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 
 class Car:
-    def __init__(self, name, color, year, image, max_speed, brakepower, acceleration, deceleration, rotation_speed, car_width, car_height):
+    def __init__(self, name, color, year, image, max_speed, brakepower, acceleration, deceleration, rotation_speed, car_width, car_height, x_pos, y_pos):
         self.angle = 90 #initial angle (car facing right)
         self.goal_angle = 90
         self.name = name
@@ -32,17 +32,17 @@ class Car:
         self.rotation_speed = rotation_speed
         self.car_width = car_width
         self.car_height = car_height
-        self.x_pos = 50 #random werte, müssen an Karte angepasst werden
-        self.y_pos = 50
+        self.x_pos = x_pos #random werte, müssen an Karte angepasst werden
+        self.y_pos = y_pos
         self.speed = pygame.Vector2((0,0))
         self.total_speed = 0
 
 
 
     def underground(self):
-        if unknown.world_data[my_car.x_pos, my_car.y_pos] == 0:
+        if unknown.world_data[self.x_pos, self.y_pos] == 0:
             return 0.7
-        elif unknown.world_data[my_car.x_pos, my_car.y_pos] == 1:
+        elif unknown.world_data[self.x_pos, my_car.y_pos] == 1:
             return 1
         elif unknown.world_data[my_car.x_pos, my_car.y_pos] == 4:
             return 2
@@ -77,9 +77,11 @@ class Car:
  
 
 
-    def move(self):
-        self.x_pos += my_car.speed[0]
-        self.y_pos += my_car.speed[1]
+    def move(self, screen, scroll_x, scroll_y):
+        self.x_pos += self.speed[0]
+        self.y_pos += self.speed[1]
+
+        screen.blit(self.rotated_image, (self.x_pos - scroll_x, self.y_pos - scroll_y, self.car_width, self.car_height))
         
 
         # Rotieren Sie das Auto-Bild
@@ -128,7 +130,7 @@ class Car:
 # Erstelle eine Instanz der Car-Klasse
 
 #my_car = car.Car(self, name, color, year, image, max_speed, brakepower, acceleration, deceleration, rotation_speed, car_width, car_height)
-violetto = Car("The Oldtimer of Dracula", "purple", 1923, pygame.image.load('images/cars/0.png'), 10, 1, 0.5, 0.2, 3, 60, 100)
+"""violetto = Car("The Oldtimer of Dracula", "purple", 1923, pygame.image.load('images/cars/0.png'), 10, 1, 0.5, 0.2, 3, 60, 100)
 blue = Car("The killer of Elon Musk", "blue", 2024, pygame.image.load('images/cars/1.png'), 17, 1, 0.9, 0.05, 2, 60, 100)
 yellow = Car("The cute racer", "blue", 1990, pygame.image.load('images/cars/2.png'), 15, 1, 0.8, 0.1, 4, 60, 100)
 
@@ -146,6 +148,7 @@ pygame.display.set_caption("Car Game")
 
 # Erstelle eine Clock-Instanz, um die FPS zu steuern
 clock = pygame.time.Clock()
+
 
 # Spiel-Loop
 running = True
@@ -212,4 +215,4 @@ while running:
     clock.tick(MAX_FPS)
 
 # Beende Pygame
-pygame.quit()
+pygame.quit()"""
