@@ -61,9 +61,9 @@ class Button():
 
 #Button instances
 button_img = pygame.transform.scale(pygame.image.load('images/button.png').convert_alpha(), (800, 180))
-start_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,SCREEN_Height  *1/ 4),text_input="Editor", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
-exit_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,SCREEN_Height * 2/ 4),text_input="Exit", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
-
+start_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,SCREEN_Height  *2/ 4),text_input="Editor", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
+exit_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,SCREEN_Height * 3/ 4),text_input="Exit", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
+play_button= Button(image = button_img, pos=(SCREEN_WIDTH/2,SCREEN_Height*1/4),text_input="Play",font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color ='#000000', hovering_color='#333333' )
 
 
 #Game loop 
@@ -73,8 +73,9 @@ while run==True:
     if start_button.draw():
         editor = Editor(1100, 740, screen)
         editor.run()
-
+    play_button.draw()
     if exit_button.draw():
+        pass
         run = False 
 
     #event handler
@@ -84,5 +85,5 @@ while run==True:
             run = False
     pygame.display.update()
 
-pygame.quit 
+pygame.quit()
 
