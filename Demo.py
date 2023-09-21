@@ -6,7 +6,6 @@ import sys
 import threading
 from particles import Particle
 import math
-import pymunk
 
 pg.init()
 
