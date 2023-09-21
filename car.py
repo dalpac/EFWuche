@@ -4,6 +4,41 @@ import math
 import csv
 
 
+
+
+
+def check_collisions(self):
+        for obstacle in self.obstacles:
+            #obstacle_rect = pg.Rect(obstacle.x - self.scroll_x, obstacle.y - self.scroll_y, obstacle.sprite_scale, obstacle.sprite_scale)
+            obstacle_rect = obstacle.sprite.get_rect()
+            obstacle_rect.x = obstacle.x - self.scroll_x
+            obstacle_rect.y = obstacle.y - self.scroll_y
+
+            mask = pg.mask.from_surface(self.player.rotated_image)
+            player_rect = mask.get_rect()
+            player_rect.x = self.player.x_pos - self.scroll_x
+            player_rect.y = self.player.y_pos -self.scroll_y
+
+            player_rect.center = self.player.rotated_image.get_rect().center
+            player_rect.center = (player_rect.center[0] + self.width / 2 + 15, player_rect.center[1] + self.height / 2 + 5)
+            player_rect.size = (50, 50)
+            if player_rect.colliderect(obstacle_rect):
+                self.player.total_speed *= -1
+                pygame.mixer.music.load("crashing.mp3")
+                pygame.mixer.music.set_volume(1)
+                pygame.mixer.music.play()
+            
+            #pg.draw.rect(self.window, "blue", obstacle_rect)
+            #pg.draw.rect(self.window, "green", (player_rect))
+
+
+
+
+
+
+
+
+
 # Initialize Pygame
 pygame.init()
 
@@ -81,11 +116,7 @@ class Car:
         self.x_pos += self.speed[0]
         self.y_pos += self.speed[1]
 
-        if self.x_pos > 7289:
-            self.x_pos = 7289
-        
         screen.blit(self.rotated_image, (self.x_pos - scroll_x, self.y_pos - scroll_y, self.car_width, self.car_height))
-        print(self.x_pos, self.y_pos)
         
 
         # Rotieren Sie das Auto-Bild

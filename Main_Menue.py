@@ -86,6 +86,9 @@ class Main_Menu:
     #Game loop 
     def main_menu(self):
         threading.Timer(1, self.activate_input).start()
+        pygame.mixer.music.load("theme_mainmenu.wav")
+        pygame.mixer.music.set_volume(0.8)
+        pygame.mixer.music.play(10)
         while True: 
             
             screen.fill((202,228,241))
