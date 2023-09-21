@@ -157,7 +157,8 @@ class Demo:
         self.font = pg.font.Font('images/Fonts/foo.otf', 100)
         self._circle_cache = {}
         self.started = False
-        self.fastest_time = ''
+        self.fastest_time = 0
+        self.elapsed_time_before_lap = 0
         self.checkpoints = []
         self.current_checkpoint = -1
         self.laps = 0
@@ -418,6 +419,14 @@ class Demo:
                     if self.current_checkpoint == len(self.checkpoints) - 1:
                         self.current_checkpoint = -1
                         self.laps += 1
+                        
+                        if self.fastest_time == 0:
+                            self.fastest_time = pg.time.get_ticks()
+                        else:
+                            if self.fastest_time > pg.time.get_ticks() - self.elapsed_time_before_lap:
+                                self.fastest_time = pg.time.get_ticks() - self.elapsed_time_before_lap
+
+                        self.elapsed_time_before_lap = pg.time.get_ticks()
 
                 if type(special_object) == Checkpoint:
                     if self.checkpoints.index(special_object) == self.current_checkpoint + 1:
@@ -482,6 +491,14 @@ class Demo:
         lap_text = self.font.render(f"Lap: {self.laps}/3", True, "black")
         text_rect = lap_text.get_rect(topright=(self.width, 50))
         window.blit(self.render(f"Lap: {self.laps}/3", self.font, (255, 95, 31), (0, 0 ,0)), text_rect)
+
+        millis=self.fastest_time%1000
+        seconds=int(self.fastest_time/1000 % 60)
+        minutes=int(self.fastest_time/60000 % 24)
+        out='{minutes:02d}:{seconds:02d}:{millis}'.format(minutes=minutes, millis=millis, seconds=seconds)
+        fastest_lap_text = self.font.render(f'Fastest Lap: {out}', True, "black")
+        text_rect = fastest_lap_text.get_rect(topright=(self.width, 100))
+        window.blit(self.render(f'Fastest Lap: {out}', self.font, (255, 95, 31), (0, 0, 0)), text_rect)
 
     def rotate(self, point):
     # First translates the point to have the origin at your sprite's center.
