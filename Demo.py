@@ -433,15 +433,25 @@ class Demo:
             #pg.draw.rect(self.window, "blue", obstacle_rect)
             #pg.draw.rect(self.window, "green", (player_rect))
 
-            """if player_rect.colliderect(special_object_rect):
-                if type(special_object) == Finish:
-                    if self.current_checkpoint == len(self.checkpoints) - 1:
-                        self.current_checkpoint = -1
-                        self.laps += 1
+            for special_object in self.special_objects:
+                special_object_rect = special_object.sprite.get_rect()
+                special_object_rect.x = special_object.x - self.scroll_x
+                special_object_rect.y = special_object.y - self.scroll_y
 
-                if type(special_object) == Checkpoint:
-                    if self.checkpoints.index(special_object) == self.current_checkpoint + 1:
-                        self.current_checkpoint = self.checkpoints.index(special_object)"""
+                mask = pg.mask.from_surface(self.player.rotated_image)
+                player_rect = mask.get_rect()
+                player_rect.x = self.player.position[0] - self.scroll_x
+                player_rect.y = self.player.position[1] -self.scroll_y
+
+                if player_rect.colliderect(special_object_rect):
+                    if type(special_object) == Finish:
+                        if self.current_checkpoint == len(self.checkpoints) - 1:
+                            self.current_checkpoint = -1
+                            self.laps += 1
+
+                    if type(special_object) == Checkpoint:
+                        if self.checkpoints.index(special_object) == self.current_checkpoint + 1:
+                            self.current_checkpoint = self.checkpoints.index(special_object)
 
     def count_down(self):
         text = self.font.render(self.countdown_text, True, "black")
@@ -512,10 +522,6 @@ class Demo:
 
     def start_demo(self):
         self.load_level()
-
-        """self.particle1 = Particle()
-        self.PARTICLE_EVENT = pg.USEREVENT + 1
-        pg.time.set_timer(self.PARTICLE_EVENT, 40)"""
         pg.time.set_timer(pg.USEREVENT, 1000)
 
         while True:
