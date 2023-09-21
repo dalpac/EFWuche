@@ -4,7 +4,7 @@ import csv
 import ast
 import sys
 import threading
-import math
+from particles import Particle
 
 pg.init()
 
@@ -182,9 +182,9 @@ class Demo:
         # Grid
         self.rows = 150
         self.columns = 150
-        self.scroll_x = 75*46
-        self.scroll_y = 75*46
-        self.tile_size = 46
+        self.scroll_x = 75*80
+        self.scroll_y = 75*80
+        self.tile_size = 80
 
         # Pygame
         self.clock = pg.time.Clock()
@@ -202,6 +202,10 @@ class Demo:
         self.physics_objects = []
         self.player = None
         self.cars = []
+
+        # Particles
+        self.particle1 = None
+        self.PARTICLE_EVENT = None
 
     def get_tiles(self):
         tile_list = []
@@ -322,57 +326,68 @@ class Demo:
             game_object.display(self.window, self.scroll_x, self.scroll_y) 
 
         
-        for special_object in self.special_objects:
-            special_object.display(self.window, self.scroll_x, self.scroll_y)
+        """for special_object in self.special_objects:
+            special_object.display(self.window, self.scroll_x, self.scroll_y)"""
 
     def receive_input(self):
         for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    pg.quit()
-                    sys.exit()
+            if event.type == pg.QUIT:
+                pg.quit()
+                sys.exit()
+
+            if event.type == self.PARTICLE_EVENT:
+                self.particle1.add_particles(self.player.position)
             
         keys = pg.key.get_pressed()
         if keys[pg.K_w]:
-            self.player.add_force(-10)
+            self.player.add_force(-20)
         if keys[pg.K_s]:
-            self.player.add_force(10)   
+            self.player.add_force(20)   
 
         if keys[pg.K_a]:
             self.player.add_torque(-5)          
         
         if keys[pg.K_d]:
-            self.player.add_torque(5)
-                   
-
-    def physics_loop(self):
-        threading.Timer(1/self.tick_rate, self.physics_loop).start()
-        for physics_object in self.physics_objects:
-            if physics_object.static != True:
-                physics_object.step(self.tick_rate)
+            self.player.add_torque(5)       
 
     def start_demo(self):
         self.load_level()
-        self.physics_loop()     
+
+        self.particle1 = Particle()
+        self.PARTICLE_EVENT = pg.USEREVENT + 1
+        pg.time.set_timer(self.PARTICLE_EVENT, 40)
 
         while True:
             # Graphics
             self.clock.tick(self.tick_rate)
             self.window.fill("black")
 
+            # Input
+            self.receive_input()
+
+            self.scroll_x = self.player.position[0] - (self.width / 2)
+            self.scroll_y = self.player.position[1] - (self.height / 2)
+
+            for physics_object in self.physics_objects:
+                if physics_object.static != True:
+                    physics_object.step(self.tick_rate)
+
             # Display World
             self.draw_grid() 
-            self.draw_world()
-            self.display_game_objects() 
+            self.draw_world()          
 
             for car in self.cars:
-                car.draw(self.scroll_x, self.scroll_y)
+                car.draw(self.scroll_x, self.scroll_y)   
 
-            # Input
-            self.receive_input()   
+            self.display_game_objects() 
 
-            pg.display.update()
+            pg.display.update()            
+
+            
 
 
 demo = Demo(1100, 740, window)
 demo.start_demo()
+
+#400,2,"(2227.44140625, 3366.44140625)",0,1631
     
