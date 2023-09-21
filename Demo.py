@@ -14,66 +14,6 @@ window = pg.display.set_mode((1100, 740))
 
 camera_smoothness = 0.75
 
-"""class Car:
-    def __init__(self, manufacturer, model, year, sprite_path, position, rotation, static):
-        self.manufacturer = manufacturer
-        self.model = model
-        self.year = year
-        self.sprite_path = sprite_path
-        self.sprite = pg.transform.scale(pg.image.load(f'images/cars/{self.sprite_path}.png').convert_alpha(), (50, 100))
-        self.position = position
-        self.rotation = rotation
-        self.sprite_scale = 100
-        self.static = static
-
-        self.rotated_image = pg.transform.rotate(self.sprite, self.rotation + 180)
-        self.velocity = pg.Vector2()
-        self.force = pg.Vector2()
-        self.torque = 0
-        self.angular_velocity = 0
-        self.vector = pg.Vector2.from_polar((1, self.rotation))
-        self.drag_coefficient = 0.03
-        self.angular_drag_coefficient = 0.1
-
-    def step(self, tick_rate):
-        self.velocity = pg.Vector2.__add__(self.velocity, (self.force / tick_rate))
-
-        drag_force = pg.Vector2()
-        drag_magnitude = -0.5 * self.drag_coefficient * self.velocity.magnitude()**2
-        if self.velocity != pg.Vector2():
-            drag_direction = self.velocity.normalize()  # Normalize the velocity to get the direction
-            drag_force = drag_direction * drag_magnitude
-        
-        self.velocity = pg.Vector2.__add__(self.velocity, (drag_force))
-
-        
-        self.angular_velocity += (self.torque / tick_rate)
-        angular_drag_torque = -0.5 * self.angular_drag_coefficient * self.angular_velocity
-
-        self.angular_velocity += angular_drag_torque
-
-        self.position += self.velocity
-        self.rotation -= self.angular_velocity        
-
-        self.force = pg.Vector2()
-        self.torque = 0
-
-    def add_force(self, force):
-        self.vector = pg.Vector2.from_polar((1, self.rotation - 90))
-        self.force = pg.Vector2(self.vector[0] * int(force), - self.vector[1] * int(force))
-
-    def add_torque(self, torque):
-        self.torque = torque
-
-    def draw(self, scroll_x, scroll_y):
-        if self.sprite.get_locked() != True:
-            top_left = [0, 0]
-            top_left[0] = self.position[0] - scroll_x
-            top_left[1] = self.position[1] - scroll_y
-            self.rotated_image = pg.transform.rotate(self.sprite, self.rotation + 180)
-            new_rect = self.rotated_image.get_rect(center = self.sprite.get_rect(topleft = top_left).center)
-            window.blit(self.rotated_image, new_rect.topleft)"""
-
 
 class GameObject():
     def __init__(self, index, sprite_path, x, y, static):
@@ -434,7 +374,7 @@ class Demo:
             self.scroll_y = ((self.columns * self.tile_size) - (self.width)) 
     
     def check_collisions(self):
-        """for obstacle in self.obstacles:
+        for obstacle in self.obstacles:
             #obstacle_rect = pg.Rect(obstacle.x - self.scroll_x, obstacle.y - self.scroll_y, obstacle.sprite_scale, obstacle.sprite_scale)
             obstacle_rect = obstacle.sprite.get_rect()
             obstacle_rect.x = obstacle.x - self.scroll_x
@@ -446,10 +386,10 @@ class Demo:
             player_rect.y = self.player.y_pos -self.scroll_y
 
             player_rect.center = self.player.rotated_image.get_rect().center
-            player_rect.center = (player_rect.center[0] + self.width / 2, player_rect.center[1] + self.height / 2 + 25)
+            player_rect.center = (player_rect.center[0] + self.width / 2 + 15, player_rect.center[1] + self.height / 2 + 5)
             player_rect.size = (50, 50)
             if player_rect.colliderect(obstacle_rect):
-                self.player.velocity *= -1
+                self.player.total_speed *= -1
             
             #pg.draw.rect(self.window, "blue", obstacle_rect)
             #pg.draw.rect(self.window, "green", (player_rect))
@@ -472,7 +412,7 @@ class Demo:
 
                 if type(special_object) == Checkpoint:
                     if self.checkpoints.index(special_object) == self.current_checkpoint + 1:
-                        self.current_checkpoint = self.checkpoints.index(special_object)"""
+                        self.current_checkpoint = self.checkpoints.index(special_object)
 
     def count_down(self):
         text = self.font.render(self.countdown_text, True, "black")

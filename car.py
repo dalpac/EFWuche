@@ -81,7 +81,11 @@ class Car:
         self.x_pos += self.speed[0]
         self.y_pos += self.speed[1]
 
+        if self.x_pos > 7289:
+            self.x_pos = 7289
+        
         screen.blit(self.rotated_image, (self.x_pos - scroll_x, self.y_pos - scroll_y, self.car_width, self.car_height))
+        print(self.x_pos, self.y_pos)
         
 
         # Rotieren Sie das Auto-Bild
