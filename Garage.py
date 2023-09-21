@@ -64,7 +64,7 @@ class Garage2:
         self.input_active = False
         self.font =pygame.font.Font('images/Fonts/foo.otf', 50)
         self.text = self.font.render('Choose your Car',True,'white')
-        self.text_rect = self.text.get_rect().center = (self.width/2,100)
+        self.text_rect = None
 
 
     def activate_input(self):
@@ -74,6 +74,7 @@ class Garage2:
     def start_garage(self):
         while True:   
             screen.fill('black')  
+            self.text_rect = self.text.get_rect(center=(self.width / 2, 100))
             screen.blit(self.text,self.text_rect)       
             car_purple.draw()
             car_blue.draw()
