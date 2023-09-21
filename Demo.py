@@ -479,6 +479,10 @@ class Demo:
         window.blit(self.render("TIME ELAPSED: ", self.font, (255, 95, 31), (0, 0, 0)), other_text_rect)
         window.blit(self.render(out, self.font, (255, 95, 31), (0, 0, 0)), text_rect)
 
+        lap_text = self.font.render(f"Lap: {self.laps}/3", True, "black")
+        text_rect = lap_text.get_rect(topright=(self.width, 50))
+        window.blit(self.render(f"Lap: {self.laps}/3", self.font, (255, 95, 31), (0, 0 ,0)), text_rect)
+
     def rotate(self, point):
     # First translates the point to have the origin at your sprite's center.
         origin = self.player.sprite.get_rect().center
@@ -508,10 +512,6 @@ class Demo:
 
             # Input
             self.receive_input()
-
-            """for physics_object in self.physics_objects:
-                if physics_object.static != True:
-                    physics_object.step(self.tick_rate)"""
 
             # Display World
             self.draw_grid() 

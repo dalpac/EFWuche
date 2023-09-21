@@ -53,7 +53,7 @@ RED = (255, 0, 0)
 
 class Car:
     def __init__(self, name, color, year, image, max_speed, brakepower, acceleration, deceleration, rotation_speed, car_width, car_height, x_pos, y_pos):
-        self.angle = 90 #initial angle (car facing right)
+        self.angle = -90 #initial angle (car facing right)
         self.goal_angle = 90
         self.name = name
         self.color = color
@@ -115,6 +115,15 @@ class Car:
     def move(self, screen, scroll_x, scroll_y):
         self.x_pos += self.speed[0]
         self.y_pos += self.speed[1]
+
+        if self.x_pos < 5000:
+            self.x_pos = 5000
+        if self.x_pos > 7330:
+            self.x_pos = 7330
+        if self.y_pos > 8660:
+            self.y_pos = 8660
+        if self.y_pos < 6000:
+            self.y_pos = 6000
 
         screen.blit(self.rotated_image, (self.x_pos - scroll_x, self.y_pos - scroll_y, self.car_width, self.car_height))
         
