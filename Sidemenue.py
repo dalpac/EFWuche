@@ -8,8 +8,8 @@ SCREEN_WIDTH = 1100
 screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_Height))
 pygame.display.set_caption('Button demo')
 
-start_img = pygame.image.load('images/button.png').convert_alpha()
-quit_img = pygame.image.load('images/button.png').convert_alpha() 
+start_img = pygame.image.load('images/Button_Dalia.png').convert_alpha()
+quit_img = pygame.image.load('images/Button_Dalia.png').convert_alpha() 
 
 #button class 
 class Button():
@@ -55,7 +55,7 @@ class Button():
         
         return action 
 
-button_img = pygame.transform.scale(pygame.image.load('images/button.png').convert_alpha(), (800, 180))
+button_img = pygame.transform.scale(pygame.image.load('images/Button_Dalia.png').convert_alpha(), (800, 180))
 
 continue_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,100),text_input="Continue", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
 main_menue_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,300),text_input="Main Menue", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
