@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 import math
-import car_objects
+import csv
 
 
 # Initialize Pygame
@@ -34,37 +34,29 @@ class Car:
         self.car_height = car_height
         self.x_pos = 50 #random werte, müssen an Karte angepasst werden
         self.y_pos = 50
-        #self.speed[0] = 0
-        #self.speed[1] = 0
         self.speed = pygame.Vector2((0,0))
         self.total_speed = 0
 
+
+
+    def underground(self):
+        if unknown.world_data[my_car.x_pos, my_car.y_pos] == 0:
+            return 0.7
+        elif unknown.world_data[my_car.x_pos, my_car.y_pos] == 1:
+            return 1
+        elif unknown.world_data[my_car.x_pos, my_car.y_pos] == 4:
+            return 2
+
     def accelerate(self):
         if -1*self.max_speed < self.total_speed < self.max_speed:
-            self.total_speed += self.acceleration
+            self.total_speed += self.acceleration #* underground.tiles()
         self.speed[0] = math.sin(math.radians(self.angle)) * self.total_speed 
         self.speed[1] = math.cos(math.radians(self.angle)) * self.total_speed
-        print("x_Speed: ", self.speed[0], "angle: ", self.angle, "cos: ", math.cos(self.angle))
+        #print("x_Speed: ", self.speed[0], "angle: ", self.angle, "cos: ", math.cos(self.angle))
         
-    def brake_x(self):
-        if self.speed[0] == 0:
-            pass
-        elif self.speed[0] > 0:
-            if self.speed[0] - self.brakepower >= 0:
-                self.speed[0] -= self.brakepower
-            elif self.brakepower >= self.speed[0] - self.brakepower >= 0:
-                self.speed[0] = 0
-        else:
-            if self.speed[0] + self.brakepower <= 0:
-                self.speed[0] += self.brakepower
-            elif self.brakepower <= self.speed[0] - self.brakepower <= 0:
-                self.speed[0] = 0
-#            print(f"{self.color} {self.year} {self.name} {self.color} is slowing down in the x-direction to {self.speed[0]} mph.")
-#        else:
-#            print(f"{self.color} {self.year} {self.name} {self.color} has already stopped in the x-direction.")
 
     
-    def brake_y(self):
+    def brake(self):
         if self.total_speed-self.brakepower <= 0:
             self.total_speed = 0
         else:
@@ -75,19 +67,19 @@ class Car:
     def decelerate(self):
         # Langsames Verlangsamen, wenn keine Beschleunigung stattfindet
         if self.total_speed + self.deceleration <= 0:
-            self.total_speed += self.deceleration
+            self.total_speed += self.deceleration #/ underground.tiles()
         elif self.total_speed - self.deceleration >= 0:
-            self.total_speed -= self.deceleration
+            self.total_speed -= self.deceleration #/ underground.tiles()
         else:
             self.total_speed = 0
         self.speed[0] = math.sin(math.radians(self.angle)) * self.total_speed 
-        self.speed[1] = math.cos(math.radians(self.angle)) * self.total_speed
+        self.speed[1] = math.cos(math.radians(self.angle)) * self.total_speed 
  
 
 
-    def move(self, underground):
-        my_car.x_pos += my_car.speed[0]*underground
-        my_car.y_pos += my_car.speed[1]*underground
+    def move(self):
+        self.x_pos += my_car.speed[0]
+        self.y_pos += my_car.speed[1]
         
 
         # Rotieren Sie das Auto-Bild
@@ -129,11 +121,6 @@ class Car:
 #        print(f"{self.color} {self.year} {self.name} {self.color} has come to a complete stop.")
 
 
-    def test(self):
-        pygame.Vector2.from_polar((1, self.angel))
-
-
-
 
 
 ########################################################################################################################
@@ -145,11 +132,10 @@ violetto = Car("The Oldtimer of Dracula", "purple", 1923, pygame.image.load('ima
 blue = Car("The killer of Elon Musk", "blue", 2024, pygame.image.load('images/cars/1.png'), 17, 1, 0.9, 0.05, 2, 60, 100)
 yellow = Car("The cute racer", "blue", 1990, pygame.image.load('images/cars/2.png'), 15, 1, 0.8, 0.1, 4, 60, 100)
 
-my_car = yellow 
+my_car = blue 
+
 
 ##############################################################################################
-
-
 
 
 # Erstelle das Pygame-Fenster
@@ -170,13 +156,10 @@ while running:
             running = False
     if keys [K_LEFT]:
         my_car.goal_angle = 270
-        print(my_car.angle)
-        print(my_car.speed)
         my_car.rotate_car_image()
         my_car.accelerate()
     elif keys[K_RIGHT]:
         my_car.goal_angle = 90
-        print(my_car.angle)
         my_car.rotate_car_image()
         my_car.accelerate()
     elif keys[K_UP]:
@@ -189,8 +172,7 @@ while running:
         my_car.accelerate()
         #elif event.type == KEYUP:
     if keys[K_SPACE]:
-        my_car.brake_x()
-        my_car.brake_y()
+        my_car.brake()
 
 
 
@@ -203,10 +185,11 @@ while running:
         my_car.speed[0] = 0
     elif my_car.y_pos == SCREEN_HEIGHT-my_car.car_height and my_car.speed[1] > 0:
         my_car.speed[1] = 0
-    
+
+
 
     # Aktualisiere die Position des Autos
-    my_car.move(1) #untergrunderkennung einfügen!!!
+    my_car.move() #untergrunderkennung einfügen!!!
 
 
     my_car.decelerate()
