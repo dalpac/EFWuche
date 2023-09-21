@@ -3,6 +3,9 @@ import sys
 from editor import Editor
 import threading
 from Demo import Demo
+from Garage import Garage2
+
+
 
 #Display Window
 SCREEN_Height = 740
@@ -92,8 +95,8 @@ class Main_Menu:
                     editor = Editor(self.width, self.height, self.screen)
                     editor.run()
                 if play_button.draw():
-                    demo = Demo(self.width, self.height, self.screen)
-                    demo.start_demo()
+                    garage = Garage2(self.width, self.height, self.screen)
+                    garage.start_garage()
                 if exit_button.draw():
                     pygame.quit()
 
