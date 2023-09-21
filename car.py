@@ -3,7 +3,7 @@ from images import cars
 import pygame
 from pygame.locals import *
 import math
-import random
+
 
 # Initialize Pygame
 pygame.init()
@@ -40,19 +40,32 @@ class Car:
         #self.speed[0] = 0
         #self.speed[1] = 0
         self.speed = pygame.Vector2((0,0))
+        self.total_speed = 0
 
 #    def start(self):
 #        print(f"{self.color} {self.year} {self.make} {self.model} is starting.")
     def accelerate_x(self, dir):
-        if -1*self.max_speed < self.speed[0] + self.acceleration*dir < self.max_speed:
+        
+        if -1*self.max_speed < self.total_speed < self.max_speed:
+            self.total_speed += self.acceleration*dir
+        self.speed[0] = math.cos(self.angle) * self.total_speed #*dir
+        
+        """if -1*self.max_speed < self.speed[0] + self.acceleration*dir < self.max_speed:
             if self.speed[0] + self.acceleration*dir <= self.max_speed or self.speed[0] + self.acceleration*dir > dir*self.max_speed:
                 self.speed[0] += self.acceleration*dir
             else:
                 self.speed[0] = self.max_speed*dir
         else:
-            self.speed[0] = self.max_speed*dir
+            self.speed[0] = self.max_speed*dir"""
         #print(f" {self.model} is accelerating in the x-direction to {self.speed[0]*dir} mph.")
 
+    def accelerate(self):
+        if -1*self.max_speed < self.total_speed < self.max_speed:
+            self.total_speed += self.acceleration
+        self.speed[0] = math.sin(math.radians(self.angle)) * self.total_speed 
+        self.speed[1] = math.cos(math.radians(self.angle)) * self.total_speed
+        print("x_Speed: ", self.speed[0], "angle: ", self.angle, "cos: ", math.cos(self.angle))
+        
     def brake_x(self):
         if self.speed[0] == 0:
             pass
@@ -70,14 +83,19 @@ class Car:
 #        else:
 #            print(f"{self.color} {self.year} {self.make} {self.model} has already stopped in the x-direction.")
 
-    def accelerate_y(self, dir):
-        if -1*self.max_speed < self.speed[1] + self.acceleration*dir < self.max_speed:
-            if self.speed[1] + self.acceleration*dir <= self.max_speed or self.speed[1] + self.acceleration*dir >= dir*self.max_speed:
+    
+    def accelerate_y(self):
+        if -1*self.max_speed < self.total_speed < self.max_speed:
+            self.total_speed += self.acceleration#*dir
+        self.speed[1] = math.sin(self.angle) * self.total_speed
+        print("sin: ", math.degrees(math.sin(self.angle)) )
+        
+        """if self.speed[1] + self.acceleration*dir <= self.max_speed or self.speed[1] + self.acceleration*dir >= dir*self.max_speed:
                 self.speed[1] += self.acceleration*dir
             else:
                 self.speed[1] = self.max_speed*dir
         else:
-            self.speed[1] = self.max_speed*dir
+            self.speed[1] = self.max_speed*dir"""
         #print(f"{self.model} is accelerating in the y-direction to {self.speed[1]} mph.")
 
     def brake_y(self):
@@ -100,7 +118,13 @@ class Car:
 
     def decelerate(self):
         # Langsames Verlangsamen, wenn keine Beschleunigung stattfindet
-        if self.speed[0] - self.deceleration >= 0:
+        if self.total_speed + self.deceleration <= 0:
+            self.total_speed += self.deceleration
+        elif self.total_speed - self.deceleration >= 0:
+            self.total_speed -= self.deceleration
+        else:
+            self.total_speed = 0
+        """if self.speed[0] - self.deceleration >= 0:
             self.speed[0] -= self.deceleration
         elif self.speed[0] + self.deceleration <= 0:
             self.speed[0] += self.deceleration
@@ -109,7 +133,7 @@ class Car:
         elif self.speed[1] + self.deceleration <= 0:
             self.speed[1] += self.deceleration
         else:
-            self.speed[1] = 0
+            self.speed[1] = 0"""
 
     def move(self, underground):
         my_car.x_pos += my_car.speed[0]*underground
@@ -120,9 +144,11 @@ class Car:
         #print(f" {self.year} {self.make} {self.model} is moving to ({self.x_pos}, {self.y_pos}).") 
 
     def rotate_car_image(self):
-        self.angle = self.angle%360
+        self.angle = abs(self.angle%360)
         if self.angle != self.goal_angle:
-            if self.angle-self.rotation_speed<=self.goal_angle<=self.angle+self.rotation_speed or self.angle-self.rotation_speed>=self.goal_angle>=self.angle+self.rotation_speed:
+            if self.goal_angle >= 180 and self.angle == 0:
+                self.angle = 359-self.rotation_speed
+            elif self.goal_angle-self.rotation_speed<self.angle<self.goal_angle+self.rotation_speed or self.goal_angle-self.rotation_speed>self.angle>=self.goal_angle+self.rotation_speed:
                 self.angle = self.goal_angle
             elif self.angle + 180 < self.goal_angle:
                 self.angle -= self.rotation_speed
@@ -177,21 +203,23 @@ while running:
             running = False
     if keys [K_LEFT]:
         my_car.goal_angle = 270
-        print(my_car.goal_angle)
+        print(my_car.angle)
+        print(my_car.speed)
         my_car.rotate_car_image()
-        my_car.accelerate_x(-1)
+        my_car.accelerate()
     elif keys[K_RIGHT]:
         my_car.goal_angle = 90
+        print(my_car.angle)
         my_car.rotate_car_image()
-        my_car.accelerate_x(1)
+        my_car.accelerate()
     elif keys[K_UP]:
         my_car.goal_angle = 180
         my_car.rotate_car_image()
-        my_car.accelerate_y(-1)
+        my_car.accelerate()
     elif keys[K_DOWN]:
         my_car.goal_angle = 0
         my_car.rotate_car_image()
-        my_car.accelerate_y(1)
+        my_car.accelerate()
         #elif event.type == KEYUP:
     if keys[K_SPACE]:
         my_car.brake_x()
