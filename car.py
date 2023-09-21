@@ -2,6 +2,7 @@
 from images import cars
 import pygame
 from pygame.locals import *
+import math
 
 # Initialize Pygame
 pygame.init()
@@ -11,7 +12,7 @@ SCREEN_WIDTH = 2000
 SCREEN_HEIGHT = 1200
 #CAR_SPEED = 2  # Geschwindigkeit des Autos
 #DECELERATION = 0.1  # Abnahme der Geschwindigkeit
-MAX_FPS = 45  # Maximale Bildwiederholrate
+MAX_FPS = 30  # Maximale Bildwiederholrate
 
 # Farben
 WHITE = (255, 255, 255)
@@ -29,6 +30,7 @@ class Car:
         self.deceleration = deceleration
         self.car_width = car_width
         self.car_height = car_height
+        self.angle = 0 #initial angle (car facing right)
         self.x_pos = 50 #random werte, müssen an Karte angepasst werden
         self.y_pos = 50
         self.x_speed = 0
@@ -36,7 +38,6 @@ class Car:
 
 #    def start(self):
 #        print(f"{self.color} {self.year} {self.make} {self.model} is starting.")
-
     def accelerate_x(self, dir):
         if -1*self.max_speed < self.x_speed + self.acceleration*dir < self.max_speed:
             if self.x_speed + self.acceleration*dir <= self.max_speed or self.x_speed + self.acceleration*dir > dir*self.max_speed:
@@ -105,9 +106,18 @@ class Car:
         else:
             self.y_speed = 0
 
-    def move(self):
-        # Aktualisiere die Position des Autos basierend auf seinen x und y Geschwindigkeiten
-        print(f" {self.year} {self.make} {self.model} is moving to ({self.x_pos}, {self.y_pos}).") 
+    def move(self, underground):
+        my_car.x_pos += my_car.x_speed*underground
+        my_car.y_pos += my_car.y_speed*underground
+        
+        if self.x_speed != 0:
+            self.angle = math.degrees(math.atan(self.y_speed/self.x_speed))
+        self.rotate_car_image()
+        #print(f" {self.year} {self.make} {self.model} is moving to ({self.x_pos}, {self.y_pos}).") 
+
+    def rotate_car_image(self):
+        self.rotated_image = pygame.transform.rotate(self.image, -self.angle+90)
+
     def stop(self):
         self.x_speed = 0
         self.y_speed = 0
@@ -136,6 +146,7 @@ pygame.display.set_caption("Car Game")
 car_image = pygame.image.load('images/cars/1.png')
 my_car = Car("Rennauto", "Yellow", 2022, car_image, 10, 1, 0.5, 0.1, 30, 50)
 car_image = pygame.transform.scale(car_image, (my_car.car_width, my_car.car_height))
+rotated_car_image = car_image
 
 
 # Erstelle eine Clock-Instanz, um die FPS zu steuern
@@ -173,11 +184,10 @@ while running:
     elif my_car.y_pos == SCREEN_HEIGHT-my_car.car_height and my_car.y_speed > 0:
         my_car.y_speed = 0
     
-    #Untergrunderkennung einfügen
+
     # Aktualisiere die Position des Autos
-    #my_car.move() #nur kommentar in cmd
-    my_car.x_pos += my_car.x_speed#*underground
-    my_car.y_pos += my_car.y_speed#*underground
+    my_car.move(1) #untergrunderkennung einfügen!!!
+
 
     my_car.decelerate()
 
@@ -190,7 +200,7 @@ while running:
 
     # Zeichne das Auto
     #pygame.draw.rect(screen, RED, (my_car.x_pos, my_car.y_pos, my_car.car_width, my_car.car_height))
-    screen.blit(car_image, (my_car.x_pos, my_car.y_pos, my_car.car_width, my_car.car_height))
+    screen.blit(my_car.rotated_image, (my_car.x_pos, my_car.y_pos, my_car.car_width, my_car.car_height))
 
     # Aktualisiere den Bildschirm
     pygame.display.flip()
