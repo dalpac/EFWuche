@@ -123,12 +123,12 @@ class Editor:
         # Grid
         self.rows = 150
         self.columns = 150
-        self.scroll_x = 75*46
-        self.scroll_y = 75*46
+        self.scroll_x = 75*80
+        self.scroll_y = 75*80
         self.scroll_speed = 1
         self.scroll_x_direction = 0
         self.scroll_y_direction = 0
-        self.tile_size = 46
+        self.tile_size = 80
         self.tile_count = len(os.listdir('images/tiles/'))
         self.asset_count = len(os.listdir('images/assets/'))
         self.special_count= len(os.listdir('images/special'))
@@ -355,7 +355,7 @@ class Editor:
                             self.active_asset.rotate(event.pos[0] + self.scroll_x - self.active_asset.x)
 
                         if self.active_asset.transform_scale:
-                            self.active_asset.scale(event.pos[0] + self.scroll_x - self.active_asset.x)  
+                            self.active_asset.scale((event.pos[0] + self.scroll_x - self.active_asset.x) + (event.pos[1] + self.scroll_y - self.active_asset.y))  
 
                 if event.type == pg.MOUSEBUTTONUP:
                     if event.button == 1:
@@ -547,6 +547,8 @@ class Editor:
 
             for special_object in special_objects_list:
                 writer.writerow(special_object)
+
+        print("Saved")
         
     def load_level(self):
         
@@ -623,9 +625,7 @@ class Editor:
             new_special_object.rotate(int(float(special_object["Rotation"])))
             new_special_object.scale(int(float(special_object["Scale"])))
             self.special_objects.append(new_special_object)
-        
-            
-
+               
     def run(self):
         pg.display.set_caption("Super Mario Cart")
 
