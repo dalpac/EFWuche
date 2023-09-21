@@ -7,6 +7,7 @@ import threading
 from particles import Particle
 import math
 from car import Car
+import time
 
 pg.init()
 
@@ -389,7 +390,13 @@ class Demo:
             player_rect.center = (player_rect.center[0] + self.width / 2 + 15, player_rect.center[1] + self.height / 2 + 5)
             player_rect.size = (50, 50)
             if player_rect.colliderect(obstacle_rect):
+                crash = pg.mixer.find_channel
+                pg.mixer.music.load("crashing.wav")
+                pg.mixer.music.set_volume(0.8)
+                pg.mixer.music.play()
                 self.player.total_speed *= -1
+                
+            
             
             #pg.draw.rect(self.window, "blue", obstacle_rect)
             #pg.draw.rect(self.window, "green", (player_rect))
@@ -483,6 +490,9 @@ class Demo:
 
     def start_demo(self):
         self.load_level()
+        #pg.mixer.music.load("driving-in-a-car-6227.mp3")
+        #pg.mixer.music.set_volume(0.8)
+        #pg.mixer.music.play(3,0.0,1000)
         pg.time.set_timer(pg.USEREVENT, 1000)
 
         while True:
@@ -498,7 +508,8 @@ class Demo:
 
             # Display World
             self.draw_grid() 
-            self.draw_world()      
+            self.draw_world()
+                  
             self.display_game_objects()     
             self.update_scroll()
             self.check_collisions()          

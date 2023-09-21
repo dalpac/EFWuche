@@ -78,13 +78,14 @@ class Garage2:
             screen.blit(self.text,self.text_rect)       
             car_purple.draw()
             car_blue.draw()
-            if car_yellow.draw()==True:
-                pass 
-          
+            if car_yellow.draw()==True:    
+                pygame.mixer.quit() #musik ausschalten
+
             for event in pygame.event.get():
                     #quit game
                         if event.type == pygame.QUIT:
                             pygame.quit()
+                            
 
             pygame.display.update()
                 
