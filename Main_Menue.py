@@ -1,6 +1,7 @@
 import pygame
 import sys  
 from editor import Editor
+import threading
 
 #Display Window
 SCREEN_Height = 740
@@ -66,24 +67,38 @@ exit_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,SCREEN_Height * 3/ 
 play_button= Button(image = button_img, pos=(SCREEN_WIDTH/2,SCREEN_Height*1/4),text_input="Play",font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color ='#000000', hovering_color='#333333' )
 
 
-#Game loop 
-run = True
-while run==True: 
-    screen.fill((202,228,241))
-    if start_button.draw():
-        editor = Editor(1100, 740, screen)
-        editor.run()
-    play_button.draw()
-    if exit_button.draw():
-        pass
-        run = False 
+class Main_Menu:
+    def __init__(self, width, height, screen) -> None:
+        self.width = width
+        self.height = height
+        self.screen = screen
+        self.input_active = False
 
-    #event handler
-    for event in pygame.event.get():
-    #quit game
-        if event.type == pygame.QUIT:
-            run = False
-    pygame.display.update()
+    def activate_input(self):
+        self.input_active = True
 
-pygame.quit()
 
+
+    #Game loop 
+    def main_menu(self):
+        threading.Timer(1, self.activate_input).start()
+        while True: 
+            
+            screen.fill((202,228,241))
+
+            if self.input_active:
+                if start_button.draw():
+                    editor = Editor(self.width, self.height, self.screen)
+                    editor.run()
+                play_button.draw()
+                if exit_button.draw():
+                    pass
+
+            #event handler
+            for event in pygame.event.get():
+            #quit game
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+
+                    pygame.quit()
+            pygame.display.update()
