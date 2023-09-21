@@ -177,7 +177,7 @@ class Editor:
         asset_list = []
         for i in range(self.asset_count):
             img = pg.image.load(f'images/assets/{i}.png').convert_alpha()
-            img = pg.transform.scale(img, (self.tile_size, self.tile_size))
+            img = pg.transform.scale(img, (self.tile_size  / 2, self.tile_size / 2))
             asset_list.append(img)
 
         special_list = []
@@ -253,7 +253,7 @@ class Editor:
         pg.draw.rect(self.window, pg.color.Color(85,107,47), (self.width - self.right_margin, 0, self.right_margin, self.height))
         self.draw_text("Tiles", pg.font.Font('images/Fonts/foo.otf', 50), "black", self.width - (self.right_margin / 2), 50)
         self.draw_text("Assets", pg.font.Font('images/Fonts/foo.otf', 50), "black", self.width - (self.right_margin / 2), 250)
-        self.draw_text("Special", pg.font.Font('images/Fonts/foo.otf', 50), "black", self.width - (self.right_margin / 2), 400)
+        self.draw_text("Special", pg.font.Font('images/Fonts/foo.otf', 50), "black", self.width - (self.right_margin / 2), 450)
 
         for button in self.tile_button_list:
             button.update(self.window)

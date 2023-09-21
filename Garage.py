@@ -1,4 +1,5 @@
 import pygame 
+from Demo import Demo
 
 #Display Window
 SCREEN_Height = 740
@@ -76,11 +77,17 @@ class Garage2:
             screen.fill('black')  
             self.text_rect = self.text.get_rect(center=(self.width / 2, 100))
             screen.blit(self.text,self.text_rect)       
-            car_purple.draw()
-            car_blue.draw()
-            if car_yellow.draw()==True:    
-                pygame.mixer.quit() #musik ausschalten
+            if car_purple.draw() == True:
+                demo = Demo(self.width, self.height, self.screen, 0)
+                demo.start_demo()
+            if car_blue.draw() == True:
+                demo = Demo(self.width, self.height, self.screen, 1)
+                demo.start_demo()
 
+            if car_yellow.draw()==True:
+                demo = Demo(self.width, self.height, self.screen, 2)
+                demo.start_demo()
+          
             for event in pygame.event.get():
                     #quit game
                         if event.type == pygame.QUIT:

@@ -3,11 +3,10 @@ import os
 import csv
 import ast
 import sys
-import threading
-from particles import Particle
 import math
 from car import Car
-import time
+from Main_Menue import Button
+from Main_Menue import Main_Menu
 
 pg.init()
 
@@ -116,7 +115,7 @@ class Checkpoint(SpecialObject):
         super().__init__(index, 1, x, y, static)
 
 class Demo:
-    def __init__(self, width, height, window):     
+    def __init__(self, width, height, window, car_index):     
         self.width = width
         self.height = height
         self.window = window
@@ -162,6 +161,15 @@ class Demo:
         self.checkpoints = []
         self.current_checkpoint = -1
         self.laps = 0
+        self.x = False
+        self.car_index = car_index
+
+        # Buttons
+        button_img = pg.transform.scale(pg.image.load('images/Button_sidemenu.png').convert_alpha(), (800, 180))
+
+        self.continue_button = Button(image=button_img, pos=(self.width / 2,100),text_input="Continue", font=pg.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
+        self.main_menue_button = Button(image=button_img, pos=(self.width / 2,300),text_input="Main Menue", font=pg.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
+        self.quit_game_button = Button(image=button_img, pos=(self.width / 2,500),text_input="QUIT", font=pg.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
 
     def get_tiles(self):
         tile_list = []
@@ -251,7 +259,7 @@ class Demo:
 
             if int(float(special_object["Sprite"])) == 0:
                 new_special_object = Finish(int(special_object["Index"]) + 100, position[0], position[1], True)
-                self.player = Car("The Oldtimer of Dracula", "purple", 1923, pg.image.load('images/cars/0.png'), 5, 0.05, 3 / self.tick_rate, 0.02, 1.5, 60, 100, new_special_object.x, new_special_object.y)
+                self.player = Car("The Oldtimer of Dracula", "purple", 1923, pg.image.load(f'images/cars/{self.car_index}.png'), 5, 0.05, 3 / self.tick_rate, 0.02, 1.5, 60, 100, new_special_object.x, new_special_object.y)
                 self.cars.append(self.player)
                 self.physics_objects.append(self.player)
                 self.scroll_x = self.player.x_pos - 100
@@ -305,10 +313,14 @@ class Demo:
                 else:
                     self.countdown_text = str(self.counter).rjust(3) if self.counter > 0 else 'GO!'
 
-            if event.type == self.PARTICLE_EVENT:
-                self.particle1.add_particles(self.player.position)
-
             if event.type == pg.KEYDOWN:
+
+                if event.key == pg.K_ESCAPE:
+                    if self.x == True:
+                        self.x = False
+                    else: 
+                        self.x = True
+
                 if event.key == pg.K_LEFT:
                     self.scroll_x_direction = -1
                 if event.key == pg.K_RIGHT:
@@ -329,16 +341,6 @@ class Demo:
                     self.scroll_y_direction = 0
             
         keys = pg.key.get_pressed()
-        """if keys[pg.K_w] or keys[pg.K_UP]:
-            self.player.accelerate()
-        if keys[pg.K_s] or keys[pg.K_DOWN]:
-            self.player.accelerate()   
-
-        if keys[pg.K_a] or keys[pg.K_LEFT]:
-            self.player.add_torque(-5)          
-        
-        if keys[pg.K_d] or keys[pg.K_RIGHT]:
-            self.player.add_torque(5)     """
         if keys [pg.K_LEFT]:
             self.player.goal_angle = 270
             self.player.rotate_car_image()
@@ -488,6 +490,11 @@ class Demo:
         # Finally we need to translate the point back to world space.
         return [rotatedX + origin[0], rotatedY + origin[1]] 
 
+    def draw_text(self, text, font, text_col, x, y):
+        img = font.render(text, True, text_col) 
+        img_rect = img.get_rect(center=(x, y))      
+        self.window.blit(img, img_rect)
+
     def start_demo(self):
         self.load_level()
         #pg.mixer.music.load("driving-in-a-car-6227.mp3")
@@ -527,6 +534,17 @@ class Demo:
                 self.count_down()
             else:
                 self.stopwatch()
+
+            if self.x == True:
+                if self.continue_button.draw() == True:
+                    self.x=False
+        
+                if self.main_menue_button.draw()== True:
+                    main_menue = Main_Menu(1100,740,self.window)
+                    main_menue.main_menu()
+                
+                if self.quit_game_button.draw() == True:
+                    pg.quit()
 
             pg.display.update()    
             self.clock.tick(self.tick_rate)                              

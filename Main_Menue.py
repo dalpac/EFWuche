@@ -1,9 +1,7 @@
-import pygame
-import sys  
+import pygame  
 from editor import Editor
 import threading
-from Demo import Demo
-from Garage import Garage2
+import Garage
 
 
 
@@ -98,7 +96,7 @@ class Main_Menu:
                     editor = Editor(self.width, self.height, self.screen)
                     editor.run()
                 if play_button.draw():
-                    garage = Garage2(self.width, self.height, self.screen)
+                    garage = Garage.Garage2(self.width, self.height, self.screen)
                     garage.start_garage()
                 if exit_button.draw():
                     pygame.quit()
