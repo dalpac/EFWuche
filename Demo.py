@@ -10,6 +10,8 @@ pg.init()
 
 window = pg.display.set_mode((1100, 740))
 
+camera_smoothness = 0.75
+
 class Car:
     def __init__(self, manufacturer, model, year, sprite_path, position, rotation, static):
         self.manufacturer = manufacturer
@@ -97,15 +99,15 @@ class GameObject:
     def rotate(self, delta):
         self.sprite_rotation = delta
         sprite = pg.image.load(f'images/assets/{self.sprite_path}.png').convert_alpha()
-        sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale))
-        self.sprite = pg.transform.rotate(sprite, delta)
+        sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale)).convert_alpha()
+        self.sprite = pg.transform.rotate(sprite, delta).convert_alpha()
         
     def scale(self, delta):
         if delta > 0:
             self.sprite_scale = delta
             sprite = pg.image.load(f'images/assets/{self.sprite_path}.png').convert_alpha()
-            sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale))
-            self.sprite = pg.transform.rotate(sprite, self.sprite_rotation)
+            sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale)).convert_alpha()
+            self.sprite = pg.transform.rotate(sprite, self.sprite_rotation).convert_alpha()
 
     def collidepoint(self, position):
         rect = pg.Rect(self.x, self.y, self.sprite_scale, self.sprite_scale)
@@ -184,6 +186,8 @@ class Demo:
         self.columns = 150
         self.scroll_x = 75*80
         self.scroll_y = 75*80
+        self.scroll_x_direction = 0
+        self.scroll_y_direction = 0
         self.tile_size = 80
 
         # Pygame
@@ -337,6 +341,26 @@ class Demo:
 
             if event.type == self.PARTICLE_EVENT:
                 self.particle1.add_particles(self.player.position)
+
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_LEFT:
+                    self.scroll_x_direction = -1
+                if event.key == pg.K_RIGHT:
+                    self.scroll_x_direction = 1
+                if event.key == pg.K_UP:
+                    self.scroll_y_direction = -1
+                if event.key == pg.K_DOWN:
+                    self.scroll_y_direction = 1
+
+            if event.type == pg.KEYUP:
+                if event.key == pg.K_LEFT:
+                    self.scroll_x_direction = 0
+                if event.key == pg.K_RIGHT:
+                    self.scroll_x_direction = 0
+                if event.key == pg.K_UP:
+                    self.scroll_y_direction = 0
+                if event.key == pg.K_DOWN:
+                    self.scroll_y_direction = 0
             
         keys = pg.key.get_pressed()
         if keys[pg.K_w]:
@@ -350,6 +374,20 @@ class Demo:
         if keys[pg.K_d]:
             self.player.add_torque(5)       
 
+    def update_scroll(self):
+        #scroll the map
+        self.scroll_x += self.player.velocity[0]
+        if self.scroll_x < 0:
+            self.scroll_x = 0
+        if self.scroll_x > ((self.columns * self.tile_size) - (self.width)):
+            self.scroll_x = ((self.columns * self.tile_size) - (self.width))       
+
+        self.scroll_y += self.player.velocity[1]
+        if self.scroll_y < 0:
+            self.scroll_y = 0
+        if self.scroll_y > ((self.columns * self.tile_size) - (self.width)):
+            self.scroll_y = ((self.columns * self.tile_size) - (self.width)) 
+    
     def start_demo(self):
         self.load_level()
 
@@ -365,26 +403,26 @@ class Demo:
             # Input
             self.receive_input()
 
-            self.scroll_x = self.player.position[0] - (self.width / 2)
-            self.scroll_y = self.player.position[1] - (self.height / 2)
-
             for physics_object in self.physics_objects:
                 if physics_object.static != True:
                     physics_object.step(self.tick_rate)
 
             # Display World
             self.draw_grid() 
-            self.draw_world()          
+            self.draw_world()      
+            self.display_game_objects()     
+            self.update_scroll()
 
             for car in self.cars:
-                car.draw(self.scroll_x, self.scroll_y)   
+                car.draw(self.scroll_x, self.scroll_y)      
 
-            self.display_game_objects() 
+            """target_scroll_x = self.player.position[0] - (self.width / 2)
+            #target_scroll_y = self.player.position[1] - (self.height / 2)
 
-            pg.display.update()            
+            self.scroll_x += (target_scroll_x - self.scroll_x) * camera_smoothness
+            #self.scroll_y += (target_scroll_y - self.scroll_y) * camera_smoothness"""
 
-            
-
+            pg.display.update()                                  
 
 demo = Demo(1100, 740, window)
 demo.start_demo()
