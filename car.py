@@ -1,8 +1,7 @@
-
-from images import cars
 import pygame
 from pygame.locals import *
 import math
+import car_objects
 
 
 # Initialize Pygame
@@ -11,8 +10,6 @@ pygame.init()
 # Constants
 SCREEN_WIDTH = 2000
 SCREEN_HEIGHT = 1200
-#CAR_SPEED = 2  # Geschwindigkeit des Autos
-#DECELERATION = 0.1  # Abnahme der Geschwindigkeit
 MAX_FPS = 60  # Maximale Bildwiederholrate
 
 # Farben
@@ -20,11 +17,11 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 
 class Car:
-    def __init__(self, make, model, year, image, max_speed, brakepower, acceleration, deceleration, rotation_speed, car_width, car_height):
-        self.angle = -90 #initial angle (car facing right)
-        self.goal_angle = -90
-        self.make = make
-        self.model = model
+    def __init__(self, name, color, year, image, max_speed, brakepower, acceleration, deceleration, rotation_speed, car_width, car_height):
+        self.angle = 90 #initial angle (car facing right)
+        self.goal_angle = 90
+        self.name = name
+        self.color = color
         self.year = year
         self.image = pygame.transform.scale(image, (car_width, car_height))
         self.rotated_image = self.rotated_image = pygame.transform.rotate(self.image, -self.angle)
@@ -62,9 +59,9 @@ class Car:
                 self.speed[0] += self.brakepower
             elif self.brakepower <= self.speed[0] - self.brakepower <= 0:
                 self.speed[0] = 0
-#            print(f"{self.color} {self.year} {self.make} {self.model} is slowing down in the x-direction to {self.speed[0]} mph.")
+#            print(f"{self.color} {self.year} {self.name} {self.color} is slowing down in the x-direction to {self.speed[0]} mph.")
 #        else:
-#            print(f"{self.color} {self.year} {self.make} {self.model} has already stopped in the x-direction.")
+#            print(f"{self.color} {self.year} {self.name} {self.color} has already stopped in the x-direction.")
 
     
     def brake_y(self):
@@ -94,11 +91,13 @@ class Car:
         
 
         # Rotieren Sie das Auto-Bild
-        #print(f" {self.year} {self.make} {self.model} is moving to ({self.x_pos}, {self.y_pos}).") 
+        #print(f" {self.year} {self.name} {self.color} is moving to ({self.x_pos}, {self.y_pos}).") 
 
     def rotate_car_image(self):
         self.angle = 360 + self.angle #to get rid of negative numbers.
         self.angle = abs(self.angle%360)
+        if round(self.angle,0) == self.goal_angle:
+            self.angle == self.goal_angle
         if self.angle != self.goal_angle:
             if self.goal_angle == 0:
                 if self.angle <= 180:
@@ -121,28 +120,13 @@ class Car:
                 elif 90 < self.angle < 270:
                     self.angle += self.rotation_speed
 
-            
-            #if self.goal_angle == 270 and self.angle <= 90:
-                #self.angle = 359-self.rotation_speed
-            
-            """if self.angle < 0:
-                self.angle = 360+self.angle
-
-            elif self.goal_angle-self.rotation_speed<self.angle<self.goal_angle+self.rotation_speed or self.goal_angle-self.rotation_speed>self.angle>=self.goal_angle+self.rotation_speed:
-                self.angle = self.goal_angle
-            elif self.angle + 180 < self.goal_angle:
-                self.angle -= self.rotation_speed
-            elif self.angle+180 > self.goal_angle:
-                self.angle += self.rotation_speed
-            elif round(self.angle,0) + 180 == self.goal_angle:
-                self.angle += self.rotation_speed"""
         self.rotated_image = pygame.transform.rotate(self.image, self.angle)
         #print (-self.angle+90)
 
     def stop(self):
         self.speed[0] = 0
         self.speed[1] = 0
-#        print(f"{self.color} {self.year} {self.make} {self.model} has come to a complete stop.")
+#        print(f"{self.color} {self.year} {self.name} {self.color} has come to a complete stop.")
 
 
     def test(self):
@@ -154,7 +138,16 @@ class Car:
 
 ########################################################################################################################
 
+# Erstelle eine Instanz der Car-Klasse
 
+#my_car = car.Car(self, name, color, year, image, max_speed, brakepower, acceleration, deceleration, rotation_speed, car_width, car_height)
+violetto = Car("The Oldtimer of Dracula", "purple", 1923, pygame.image.load('images/cars/0.png'), 10, 1, 0.5, 0.2, 3, 60, 100)
+blue = Car("The killer of Elon Musk", "blue", 2024, pygame.image.load('images/cars/1.png'), 17, 1, 0.9, 0.05, 2, 60, 100)
+yellow = Car("The cute racer", "blue", 1990, pygame.image.load('images/cars/2.png'), 15, 1, 0.8, 0.1, 4, 60, 100)
+
+my_car = yellow 
+
+##############################################################################################
 
 
 
@@ -163,12 +156,6 @@ class Car:
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Car Game")
 
-
-# Erstelle eine Instanz der Car-Klasse
-car_image = pygame.image.load('images/cars/1.png')
-my_car = Car("Rennauto", "Yellow", 2022, car_image, 10, 1, 0.5, 0.1, 3, 60, 100)
-car_image = pygame.transform.scale(car_image, (my_car.car_width, my_car.car_height))
-rotated_car_image = car_image
 
 
 # Erstelle eine Clock-Instanz, um die FPS zu steuern
