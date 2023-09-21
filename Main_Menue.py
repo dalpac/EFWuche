@@ -10,8 +10,8 @@ screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_Height))
 pygame.display.set_caption('Button demo')
 
 #load button images
-start_img = pygame.image.load('images/button.png').convert_alpha()
-quit_img = pygame.image.load('images/button.png').convert_alpha() 
+start_img = pygame.image.load('images/Button_dalia.png').convert_alpha()
+quit_img = pygame.image.load('images/Button_dalia.png').convert_alpha() 
 
 #button class 
 class Button():
@@ -60,7 +60,7 @@ class Button():
     
 
 #Button instances
-button_img = pygame.transform.scale(pygame.image.load('images/button.png').convert_alpha(), (800, 180))
+button_img = pygame.transform.scale(pygame.image.load('images/Button_dalia.png').convert_alpha(), (800, 180))
 start_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,SCREEN_Height  *2/ 4),text_input="Editor", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
 exit_button = Button(image=button_img, pos=(SCREEN_WIDTH / 2,SCREEN_Height * 3/ 4),text_input="Exit", font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color="#000000", hovering_color="#333333")
 play_button= Button(image = button_img, pos=(SCREEN_WIDTH/2,SCREEN_Height*1/4),text_input="Play",font=pygame.font.Font('images/Fonts/foo.otf', 50), base_color ='#000000', hovering_color='#333333' )
