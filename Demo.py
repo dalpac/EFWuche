@@ -5,6 +5,7 @@ import ast
 import sys
 import threading
 from particles import Particle
+import math
 
 pg.init()
 
@@ -20,10 +21,11 @@ class Car:
         self.sprite_path = sprite_path
         self.sprite = pg.transform.scale(pg.image.load(f'images/cars/{self.sprite_path}.png').convert_alpha(), (50, 100))
         self.position = position
-        self.rotation = 0
+        self.rotation = rotation
         self.sprite_scale = 100
         self.static = static
 
+        self.rotated_image = pg.transform.rotate(self.sprite, self.rotation + 180)
         self.velocity = pg.Vector2()
         self.force = pg.Vector2()
         self.torque = 0
@@ -67,10 +69,10 @@ class Car:
             top_left = [0, 0]
             top_left[0] = self.position[0] - scroll_x
             top_left[1] = self.position[1] - scroll_y
-            rotated_image = pg.transform.rotate(self.sprite, self.rotation + 180)
-            new_rect = rotated_image.get_rect(center = self.sprite.get_rect(topleft = top_left).center)
-            window.blit(rotated_image, new_rect.topleft)
-        
+            self.rotated_image = pg.transform.rotate(self.sprite, self.rotation + 180)
+            new_rect = self.rotated_image.get_rect(center = self.sprite.get_rect(topleft = top_left).center)
+            window.blit(self.rotated_image, new_rect.topleft)
+
 
 class GameObject():
     def __init__(self, index, sprite_path, x, y, static):
@@ -171,10 +173,6 @@ class Checkpoint(SpecialObject):
     def __init__(self, index, x, y, static):
         super().__init__(index, 1, x, y, static)
 
-class Spawnpoint(SpecialObject):
-    def __init__(self, index, x, y, static):
-        super().__init__(index, 2, x, y, static)
-
 class Demo:
     def __init__(self, width, height, window):     
         self.width = width
@@ -211,6 +209,17 @@ class Demo:
         # Particles
         self.particle1 = None
         self.PARTICLE_EVENT = None
+        self.space = []
+
+        self.counter = 3
+        self.countdown_text = '3'.rjust(3)
+        self.font = pg.font.Font('images/Fonts/foo.otf', 100)
+        self._circle_cache = {}
+        self.started = False
+        self.fastest_time = ''
+        self.checkpoints = []
+        self.current_checkpoint = -1
+        self.laps = 0
 
     def get_tiles(self):
         tile_list = []
@@ -300,7 +309,7 @@ class Demo:
 
             if int(float(special_object["Sprite"])) == 0:
                 new_special_object = Finish(int(special_object["Index"]) + 100, position[0], position[1], True)
-                self.player = Car("Honda", "Civic Type R", 2018, 0, pg.Vector2(new_special_object.x, new_special_object.y), 0, False)
+                self.player = Car("Honda", "Civic Type R", 2018, 0, pg.Vector2(new_special_object.x, new_special_object.y), -90, False)
                 self.cars.append(self.player)
                 self.physics_objects.append(self.player)
                 self.scroll_x = self.player.position[0] - 100
@@ -308,8 +317,7 @@ class Demo:
 
             elif int(float(special_object["Sprite"])) == 1:
                 new_special_object = Checkpoint(int(special_object["Index"]) + 100, position[0], position[1], True)
-            else:
-                new_special_object = Spawnpoint(int(special_object["Index"]) + 100, position[0], position[1], True)
+                self.checkpoints.append(new_special_object)
 
             new_special_object.rotate(int(float(special_object["Rotation"])))
             new_special_object.scale(int(float(special_object["Scale"])))
@@ -332,14 +340,28 @@ class Demo:
         for game_object in self.game_objects:
             game_object.display(self.window, self.scroll_x, self.scroll_y) 
         
-        """for special_object in self.special_objects:
-            special_object.display(self.window, self.scroll_x, self.scroll_y)"""
+        for special_object in self.special_objects:
+            if type(special_object) == Finish:
+                special_object.display(self.window, self.scroll_x, self.scroll_y)
+
+        for checkpoint in self.checkpoints:
+                if self.checkpoints.index(checkpoint) == self.current_checkpoint + 1:
+                    checkpoint.display(self.window, self.scroll_x, self.scroll_y)
+
 
     def receive_input(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
                 sys.exit()
+
+            if event.type == pg.USEREVENT:
+                self.counter -= 1
+                if self.countdown_text == 'GO!':
+                    self.started = True
+                    self.font = pg.font.Font('images/Fonts/foo.otf', 25)
+                else:
+                    self.countdown_text = str(self.counter).rjust(3) if self.counter > 0 else 'GO!'
 
             if event.type == self.PARTICLE_EVENT:
                 self.particle1.add_particles(self.player.position)
@@ -365,15 +387,15 @@ class Demo:
                     self.scroll_y_direction = 0
             
         keys = pg.key.get_pressed()
-        if keys[pg.K_w]:
+        if keys[pg.K_w] or keys[pg.K_UP]:
             self.player.add_force(-20)
-        if keys[pg.K_s]:
+        if keys[pg.K_s] or keys[pg.K_DOWN]:
             self.player.add_force(20)   
 
-        if keys[pg.K_a]:
+        if keys[pg.K_a] or keys[pg.K_LEFT]:
             self.player.add_torque(-5)          
         
-        if keys[pg.K_d]:
+        if keys[pg.K_d] or keys[pg.K_RIGHT]:
             self.player.add_torque(5)       
 
     def update_scroll(self):
@@ -390,31 +412,114 @@ class Demo:
         if self.scroll_y > ((self.columns * self.tile_size) - (self.width)):
             self.scroll_y = ((self.columns * self.tile_size) - (self.width)) 
     
-    def draw_collider(self):
+    def check_collisions(self):
         for obstacle in self.obstacles:
             #obstacle_rect = pg.Rect(obstacle.x - self.scroll_x, obstacle.y - self.scroll_y, obstacle.sprite_scale, obstacle.sprite_scale)
             obstacle_rect = obstacle.sprite.get_rect()
             obstacle_rect.x = obstacle.x - self.scroll_x
             obstacle_rect.y = obstacle.y - self.scroll_y
 
-            player_rect = self.player.sprite.get_rect()
-            player_rect.x = self.player.position[0] -self.scroll_x
+            mask = pg.mask.from_surface(self.player.rotated_image)
+            player_rect = mask.get_rect()
+            player_rect.x = self.player.position[0] - self.scroll_x
             player_rect.y = self.player.position[1] -self.scroll_y
+
+            player_rect.center = self.player.rotated_image.get_rect().center
+            player_rect.center = (player_rect.center[0] + self.width / 2, player_rect.center[1] + self.height / 2 + 25)
+            player_rect.size = (50, 50)
             if player_rect.colliderect(obstacle_rect):
                 self.player.velocity *= -1
+            
+            #pg.draw.rect(self.window, "blue", obstacle_rect)
+            #pg.draw.rect(self.window, "green", (player_rect))
 
-            pg.draw.rect(self.window, "blue", obstacle_rect)
+            """if player_rect.colliderect(special_object_rect):
+                if type(special_object) == Finish:
+                    if self.current_checkpoint == len(self.checkpoints) - 1:
+                        self.current_checkpoint = -1
+                        self.laps += 1
+
+                if type(special_object) == Checkpoint:
+                    if self.checkpoints.index(special_object) == self.current_checkpoint + 1:
+                        self.current_checkpoint = self.checkpoints.index(special_object)"""
+
+    def count_down(self):
+        text = self.font.render(self.countdown_text, True, "black")
+        text_rect = text.get_rect(center=(self.width / 2, self.height / 2))
+        self.window.blit(self.render(self.countdown_text, self.font, (255, 95, 31), (0, 0, 0)), text_rect)
+
+    def _circlepoints(self, r):
+        r = int(round(r))
+        if r in self._circle_cache:
+            return self._circle_cache[r]
+        x, y, e = r, 0, 1 - r
+        self._circle_cache[r] = points = []
+        while x >= y:
+            points.append((x, y))
+            y += 1
+            if e < 0:
+                e += 2 * y - 1
+            else:
+                x -= 1
+                e += 2 * (y - x) - 1
+        points += [(y, x) for x, y in points if x > y]
+        points += [(-x, y) for x, y in points if x]
+        points += [(x, -y) for x, y in points if y]
+        points.sort()
+        return points
+
+    def render(self, text, font, gfcolor=pg.Color('dodgerblue'), ocolor=(255, 255, 255), opx=2):
+        textsurface = font.render(text, True, gfcolor).convert_alpha()
+        w = textsurface.get_width() + 2 * opx
+        h = font.get_height()
+
+        osurf = pg.Surface((w, h + 2 * opx)).convert_alpha()
+        osurf.fill((0, 0, 0, 0))
+
+        surf = osurf.copy()
+
+        osurf.blit(font.render(text, True, ocolor).convert_alpha(), (0, 0))
+
+        for dx, dy in self._circlepoints(opx):
+            surf.blit(osurf, (dx + opx, dy + opx))
+
+        surf.blit(textsurface, (opx, opx))
+        return surf
+
+    def stopwatch(self):
+        ticks=pg.time.get_ticks()
+        millis=ticks%1000
+        seconds=int(ticks/1000 % 60)
+        minutes=int(ticks/60000 % 24)
+        out='{minutes:02d}:{seconds:02d}:{millis}'.format(minutes=minutes, millis=millis, seconds=seconds)
+        text = self.font.render(out, True, "black")
+        text_rect = text.get_rect(topright=(self.width, 0))
+        other_text = self.font.render('TIME ELAPSED: 00:00:000', True, "black")
+        other_text_rect = other_text.get_rect(topright=(self.width, 0))
+        window.blit(self.render("TIME ELAPSED: ", self.font, (255, 95, 31), (0, 0, 0)), other_text_rect)
+        window.blit(self.render(out, self.font, (255, 95, 31), (0, 0, 0)), text_rect)
+
+    def rotate(self, point):
+    # First translates the point to have the origin at your sprite's center.
+        origin = self.player.sprite.get_rect().center
+        originPoint = (point[0] - origin[0], point[1] - origin[1])
+        # Then we rotate the point using basic trigonometry.
+        rotatedX = originPoint[0] * math.cos(self.player.rotation) - originPoint[1] * math.sin(self.player.rotation)
+        rotatedY = originPoint[0] * math.sin(self.player.rotation) + originPoint[1] * math.cos(self.player.rotation)
+
+        # Finally we need to translate the point back to world space.
+        return [rotatedX + origin[0], rotatedY + origin[1]] 
 
     def start_demo(self):
         self.load_level()
 
-        self.particle1 = Particle()
+        """self.particle1 = Particle()
         self.PARTICLE_EVENT = pg.USEREVENT + 1
-        pg.time.set_timer(self.PARTICLE_EVENT, 40)
+        pg.time.set_timer(self.PARTICLE_EVENT, 40)"""
+        pg.time.set_timer(pg.USEREVENT, 1000)
 
         while True:
             # Graphics
-            self.clock.tick(self.tick_rate)
             self.window.fill("black")
 
             # Input
@@ -429,10 +534,10 @@ class Demo:
             self.draw_world()      
             self.display_game_objects()     
             self.update_scroll()
-            self.draw_collider()
+            self.check_collisions()          
 
             for car in self.cars:
-                car.draw(self.scroll_x, self.scroll_y)      
+                car.draw(self.scroll_x, self.scroll_y)    
 
             target_scroll_x = self.player.position[0] - (self.width / 2)
             target_scroll_y = self.player.position[1] - (self.height / 2)
@@ -440,8 +545,15 @@ class Demo:
             self.scroll_x += (target_scroll_x - self.scroll_x) * camera_smoothness
             self.scroll_y += (target_scroll_y - self.scroll_y) * camera_smoothness
 
-            pg.display.update()                                  
+            if self.started == False:
+                self.count_down()
+            else:
+                self.stopwatch()
+
+            pg.display.update()    
+            self.clock.tick(self.tick_rate)                              
     
 if __name__ == "__main__":
     demo = Demo(1100, 740, window)
     demo.start_demo()
+

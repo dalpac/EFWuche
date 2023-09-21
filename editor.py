@@ -344,8 +344,14 @@ class Editor:
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         if self.active_asset == None:  
-                            self.drag(event)                            
-                                                     
+                            self.drag(event) 
+
+                    if self.save_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
+                        self.save_level()
+
+                    if self.load_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
+                        self.load_level()                               
+                                                                
                 if event.type == pg.MOUSEMOTION:
                     if self.active_asset != None:
                         if self.active_asset.transform_move:
@@ -360,13 +366,7 @@ class Editor:
                 if event.type == pg.MOUSEBUTTONUP:
                     if event.button == 1:
                         if self.active_asset != None:
-                            self.drop() 
-
-        if self.save_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
-            self.save_level()
-
-        if self.load_button.drag(self.window, pg.mouse.get_pos(), pg.mouse.get_pressed()):
-            self.load_level()                
+                            self.drop()             
 
     def drag(self, event):
         if self.current_game_object != None:  

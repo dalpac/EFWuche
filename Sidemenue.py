@@ -1,8 +1,9 @@
 import pygame
-from Main_Menue import Main_Menu
-import threading
 
 pygame.init()
+
+from Main_Menue import Main_Menu
+import threading
 
 SCREEN_Height = 740
 SCREEN_WIDTH = 1100
