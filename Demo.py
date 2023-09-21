@@ -18,9 +18,10 @@ class Car:
         self.model = model
         self.year = year
         self.sprite_path = sprite_path
-        self.sprite = pg.transform.scale(pg.image.load(f'images/cars/{self.sprite_path}.png').convert_alpha(), (100, 100))
+        self.sprite = pg.transform.scale(pg.image.load(f'images/cars/{self.sprite_path}.png').convert_alpha(), (50, 100))
         self.position = position
         self.rotation = 0
+        self.sprite_scale = 100
         self.static = static
 
         self.velocity = pg.Vector2()
@@ -32,8 +33,6 @@ class Car:
         self.angular_drag_coefficient = 0.1
 
     def step(self, tick_rate):
-        
-
         self.velocity = pg.Vector2.__add__(self.velocity, (self.force / tick_rate))
 
         drag_force = pg.Vector2()
@@ -68,12 +67,12 @@ class Car:
             top_left = [0, 0]
             top_left[0] = self.position[0] - scroll_x
             top_left[1] = self.position[1] - scroll_y
-            rotated_image = pg.transform.rotate(self.sprite, self.rotation)
+            rotated_image = pg.transform.rotate(self.sprite, self.rotation + 180)
             new_rect = rotated_image.get_rect(center = self.sprite.get_rect(topleft = top_left).center)
             window.blit(rotated_image, new_rect.topleft)
         
 
-class GameObject:
+class GameObject():
     def __init__(self, index, sprite_path, x, y, static):
         self.index = index
         self.sprite_path = sprite_path
@@ -99,15 +98,16 @@ class GameObject:
     def rotate(self, delta):
         self.sprite_rotation = delta
         sprite = pg.image.load(f'images/assets/{self.sprite_path}.png').convert_alpha()
-        sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale)).convert_alpha()
-        self.sprite = pg.transform.rotate(sprite, delta).convert_alpha()
+        sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale))
+        self.sprite = pg.transform.rotate(sprite, delta)
+
         
     def scale(self, delta):
         if delta > 0:
             self.sprite_scale = delta
             sprite = pg.image.load(f'images/assets/{self.sprite_path}.png').convert_alpha()
-            sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale)).convert_alpha()
-            self.sprite = pg.transform.rotate(sprite, self.sprite_rotation).convert_alpha()
+            sprite = pg.transform.scale(sprite, (self.sprite_scale, self.sprite_scale))
+            self.sprite = pg.transform.rotate(sprite, self.sprite_rotation)
 
     def collidepoint(self, position):
         rect = pg.Rect(self.x, self.y, self.sprite_scale, self.sprite_scale)
@@ -117,7 +117,7 @@ class GameObject:
 
     def display(self, window, scroll_x, scroll_y):
         window.blit(self.sprite, ((self.x - scroll_x), (self.y - scroll_y)))
-
+        
 class SpecialObject:
     def __init__(self, index, sprite_path, x, y, static):
         self.index = index
@@ -204,6 +204,7 @@ class Demo:
         self.object_id = 0
 
         self.physics_objects = []
+        self.obstacles = []
         self.player = None
         self.cars = []
 
@@ -269,6 +270,8 @@ class Demo:
             new_game_object.rotate(int(float(game_object["Rotation"])))
             new_game_object.scale(int(float(game_object["Scale"])))
             self.game_objects.append(new_game_object)
+            if int(game_object["Sprite"]) != 2:
+                self.obstacles.append(new_game_object)
 
         csv_file_path = "level_special_object_data.csv"
 
@@ -297,7 +300,7 @@ class Demo:
 
             if int(float(special_object["Sprite"])) == 0:
                 new_special_object = Finish(int(special_object["Index"]) + 100, position[0], position[1], True)
-                self.player = Car("Honda", "Civic Type R", 2018, 2, pg.Vector2(new_special_object.x, new_special_object.y), 0, False)
+                self.player = Car("Honda", "Civic Type R", 2018, 0, pg.Vector2(new_special_object.x, new_special_object.y), 0, False)
                 self.cars.append(self.player)
                 self.physics_objects.append(self.player)
                 self.scroll_x = self.player.position[0] - 100
@@ -328,7 +331,6 @@ class Demo:
     def display_game_objects(self):
         for game_object in self.game_objects:
             game_object.display(self.window, self.scroll_x, self.scroll_y) 
-
         
         """for special_object in self.special_objects:
             special_object.display(self.window, self.scroll_x, self.scroll_y)"""
@@ -388,6 +390,21 @@ class Demo:
         if self.scroll_y > ((self.columns * self.tile_size) - (self.width)):
             self.scroll_y = ((self.columns * self.tile_size) - (self.width)) 
     
+    def draw_collider(self):
+        for obstacle in self.obstacles:
+            #obstacle_rect = pg.Rect(obstacle.x - self.scroll_x, obstacle.y - self.scroll_y, obstacle.sprite_scale, obstacle.sprite_scale)
+            obstacle_rect = obstacle.sprite.get_rect()
+            obstacle_rect.x = obstacle.x - self.scroll_x
+            obstacle_rect.y = obstacle.y - self.scroll_y
+
+            player_rect = self.player.sprite.get_rect()
+            player_rect.x = self.player.position[0] -self.scroll_x
+            player_rect.y = self.player.position[1] -self.scroll_y
+            if player_rect.colliderect(obstacle_rect):
+                self.player.velocity *= -1
+
+            pg.draw.rect(self.window, "blue", obstacle_rect)
+
     def start_demo(self):
         self.load_level()
 
@@ -412,20 +429,19 @@ class Demo:
             self.draw_world()      
             self.display_game_objects()     
             self.update_scroll()
+            self.draw_collider()
 
             for car in self.cars:
                 car.draw(self.scroll_x, self.scroll_y)      
 
-            """target_scroll_x = self.player.position[0] - (self.width / 2)
-            #target_scroll_y = self.player.position[1] - (self.height / 2)
+            target_scroll_x = self.player.position[0] - (self.width / 2)
+            target_scroll_y = self.player.position[1] - (self.height / 2)
 
             self.scroll_x += (target_scroll_x - self.scroll_x) * camera_smoothness
-            #self.scroll_y += (target_scroll_y - self.scroll_y) * camera_smoothness"""
+            self.scroll_y += (target_scroll_y - self.scroll_y) * camera_smoothness
 
             pg.display.update()                                  
-
-demo = Demo(1100, 740, window)
-demo.start_demo()
-
-#400,2,"(2227.44140625, 3366.44140625)",0,1631
     
+if __name__ == "__main__":
+    demo = Demo(1100, 740, window)
+    demo.start_demo()

@@ -88,8 +88,7 @@ def side_menu():
                 main_menue.main_menu()
                 
             if quit_game_button.draw() == True:
-                run = False
-                print(run)
+                pygame.quit()
 
         
         pygame.display.update()

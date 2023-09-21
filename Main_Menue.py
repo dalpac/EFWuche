@@ -2,6 +2,7 @@ import pygame
 import sys  
 from editor import Editor
 import threading
+from Demo import Demo
 
 #Display Window
 SCREEN_Height = 740
@@ -90,9 +91,11 @@ class Main_Menu:
                 if start_button.draw():
                     editor = Editor(self.width, self.height, self.screen)
                     editor.run()
-                play_button.draw()
+                if play_button.draw():
+                    demo = Demo(self.width, self.height, self.screen)
+                    demo.start_demo()
                 if exit_button.draw():
-                    pass
+                    pygame.quit()
 
             #event handler
             for event in pygame.event.get():
@@ -102,3 +105,8 @@ class Main_Menu:
 
                     pygame.quit()
             pygame.display.update()
+
+
+if __name__ == "__main__":
+    main_menu = Main_Menu(1100, 740, screen)
+    main_menu.main_menu()
